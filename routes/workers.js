@@ -3,6 +3,7 @@ const router = express.Router();
 const config = require('../config');
 const fs = require('fs')
 const workers = require('../data/workers-safe');
+const rimraf = require("rimraf");
 
 router.route('/:id/errorlog')
     .get((req, res) => {
@@ -97,18 +98,19 @@ router.get('/:id/getBackupFile', (req, res) => {
 
 router.delete('/:id/backup', (req, res) => {
     if (req.session.authenticated) {
-        console.log('User wants to delete files from worker: ' + req.params.id);
+        const id = req.params.id;
+        console.log('User wants to delete files from worker: ' + id);
 
         const filePath = config.projectLoaction + '/' + config.backupLocation + '/backup-' + id + '.zip';
         const dirPath = config.projectLoaction + '/' + config.backupLocation + '/back-' + id;
 
-        if (fs.existsSync(fielPath) || fs.existsSync(dirPath)) {
+        if (fs.existsSync(filePath) && fs.existsSync(dirPath)) {
             console.log('Files exist');
 
             fs.unlinkSync(filePath);
             rimraf.sync(dirPath);
 
-            res.state(200).end();
+            res.status(200).end();
 
         } else {
             console.error('Files were not found');
