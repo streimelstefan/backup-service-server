@@ -1,9 +1,10 @@
 const express = require('express');
 const Sentry = require('@sentry/node');
 const cookieParser = require('cookie-parser');
+const session = require('express-session')
 
-const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
+const authRouter = require('./routes/auth');
+const scrpitRouter = require('./routes/scripts');
 
 const app = express();
 
@@ -14,6 +15,12 @@ app.use(Sentry.Handlers.requestHandler());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(session({
+    'secret': 'fdjakl12jklfjdaiphfvajnkl3brfjkdlahu3ez378uawiofh3UIRZHFAHBFDSA'
+}));
+
+app.use('/v1/auth', authRouter);
+app.use('/v1/scripts', scrpitRouter);
 
 app.get('/debug-sentry', function mainHandler(req, res) {
     throw new Error('My first Sentry error!');
