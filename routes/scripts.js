@@ -4,6 +4,7 @@ const config = require('../config');
 const spawn = require('child_process').spawn;
 let workers = require('../data/workers-safe');
 const fs = require('fs');
+const archiver = require('archiver');
 
 router.route('')
     .get((req, res) => {
@@ -60,7 +61,7 @@ router.post('/:id/start', (req, res) => {
             const id = workers.push({executing: ''}) - 1;
 
             const command = config.scripts[req.params.id].script
-                .replace('{{BACKUP_LOCATION}}', config.projectLoaction + '/' + config.backupLocation)
+                .replace('{{BACKUP_LOCATION}}', config.projectLoaction + '/' + config.backupLocation + '/back-' + id)
                 .replace('{{BACKUP_FILE_NAME}}', `backup-${id}.back`);
 
             workers[id].executing = command;
@@ -82,6 +83,9 @@ router.post('/:id/start', (req, res) => {
 
             workers[id].child.on('close', (code) => {
                 console.log(`child process exited with code ${code}`);
+                const location = config.projectLoaction + '/' + config.backupLocation + '/back-' + id;
+                console.log('Location: ' + location);
+                addDirToArchive(location, `${config.projectLoaction}/${config.backupLocation}/backup-${id}.zip`);
                 workers[id].state = 'SUCCESS';
                 workers[id].child.unref();
             });
@@ -94,5 +98,24 @@ router.post('/:id/start', (req, res) => {
         res.status(403).send('Please Authenticate first').end();
     }
 });
+
+
+function addDirToArchive(dir, backname) {
+    var output = fs.createWriteStream(backname);
+    var archive = archiver('zip');
+
+    output.on('close', function () {
+        console.log(archive.pointer() + ' total bytes');
+        console.log('archiver has been finalized and the output file descriptor has closed.');
+    });
+
+    archive.on('error', function(err){
+        throw err;
+    });
+
+    archive.pipe(output);
+    archive.directory(dir, false);
+    archive.finalize();
+}
 
 module.exports = router;

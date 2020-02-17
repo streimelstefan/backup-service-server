@@ -95,4 +95,29 @@ router.get('/:id/getBackupFile', (req, res) => {
     }
 });
 
+router.delete('/:id/backup', (req, res) => {
+    if (req.session.authenticated) {
+        console.log('User wants to delete files from worker: ' + req.params.id);
+
+        const filePath = config.projectLoaction + '/' + config.backupLocation + '/backup-' + id + '.zip';
+        const dirPath = config.projectLoaction + '/' + config.backupLocation + '/back-' + id;
+
+        if (fs.existsSync(fielPath) || fs.existsSync(dirPath)) {
+            console.log('Files exist');
+
+            fs.unlinkSync(filePath);
+            rimraf.sync(dirPath);
+
+            res.state(200).end();
+
+        } else {
+            console.error('Files were not found');
+            res.status(403).end();
+        }
+    } else {
+        console.error('The User is not authenticated');
+        res.status(403).send('Please Authenticate first').end();
+    }
+});
+
 module.exports = router;
