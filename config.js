@@ -5,10 +5,10 @@ const config = {
     },
     scripts: [
         {
-            id: 0,
             script: "echo hello"
         }
-    ]
+    ],
+    logFilesLocation: './logs'
 }
 
 module.exports = config;
