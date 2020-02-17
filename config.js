@@ -5,7 +5,7 @@ const config = {
     },
     scripts: [
         {
-            script: "echo hello"
+            script: "echo {{BACKUP_LOCATION}}/{{BACKUP_FILE_NAME}}"
         }
     ],
     logFilesLocation: 'logs',

@@ -57,9 +57,13 @@ router.post('/:id/start', (req, res) => {
         } else {
             console.log(`Starting data: ${JSON.stringify(config.scripts[req.params.id])}`);
 
-            const command = config.scripts[req.params.id].script;
+            const id = workers.push({executing: ''}) - 1;
 
-            const id = workers.push({executing: command}) - 1;
+            const command = config.scripts[req.params.id].script
+                .replace('{{BACKUP_LOCATION}}', config.projectLoaction + '/' + config.backupLocation)
+                .replace('{{BACKUP_FILE_NAME}}', `backup-${id}.back`);
+
+            workers[id].executing = command;
 
             console.log(`All Workers: ${JSON.stringify(workers)}`);
             console.log(`Worker id: ${id}`);
