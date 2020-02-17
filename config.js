@@ -8,7 +8,9 @@ const config = {
             script: "echo hello"
         }
     ],
-    logFilesLocation: './logs'
+    logFilesLocation: 'logs',
+    projectLoaction: '',
+    backupLocation: 'backup'
 }
 
 module.exports = config;

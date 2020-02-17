@@ -2,9 +2,11 @@ const express = require('express');
 const Sentry = require('@sentry/node');
 const cookieParser = require('cookie-parser');
 const session = require('express-session')
+let config = require('./config');
 
 const authRouter = require('./routes/auth');
 const scrpitRouter = require('./routes/scripts');
+const workersRouter = require('./routes/workers');
 
 const app = express();
 
@@ -21,6 +23,7 @@ app.use(session({
 
 app.use('/v1/auth', authRouter);
 app.use('/v1/scripts', scrpitRouter);
+app.use('/v1/workers', workersRouter);
 
 app.get('/debug-sentry', function mainHandler(req, res) {
     throw new Error('My first Sentry error!');
@@ -37,5 +40,7 @@ app.use(function onError(err, req, res, next) {
     res.statusCode = 500;
     res.end(res.sentry + "\n");
 });
+
+config.projectLoaction = __dirname;
 
 module.exports = app;

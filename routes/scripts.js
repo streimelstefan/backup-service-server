@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const config = require('../config');
 const spawn = require('child_process').spawn;
-let workers = require('../data/workers');
+let workers = require('../data/workers-safe');
 const fs = require('fs');
 
 router.route('')
@@ -67,6 +67,8 @@ router.post('/:id/start', (req, res) => {
             const out = fs.openSync(`${config.logFilesLocation}/out-${id}.log`, 'a');
             const err = fs.openSync(`${config.logFilesLocation}/errout-${id}.log`, 'a');
 
+            workers[id].finished = false;
+            workers[id].state = 'RUNNING';
 
             workers[id].child = spawn(command, [], {
                 shell: process.env.ComSpec,
@@ -76,6 +78,7 @@ router.post('/:id/start', (req, res) => {
 
             workers[id].child.on('close', (code) => {
                 console.log(`child process exited with code ${code}`);
+                workers[id].state = 'SUCCESS';
                 workers[id].child.unref();
             });
 
