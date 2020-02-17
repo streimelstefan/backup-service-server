@@ -15,8 +15,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
 app.get('/debug-sentry', function mainHandler(req, res) {
     throw new Error('My first Sentry error!');
 });
