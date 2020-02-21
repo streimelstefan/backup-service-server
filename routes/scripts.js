@@ -46,6 +46,7 @@ router.get('/:id', (req, res) => {
 });
 
 router.post('/:id/register', (req, res) => {
+    console.log(req.cookies);
     if (req.session.authenticated) {
         console.log(`User wants to start: ${req.params.id}`);
 

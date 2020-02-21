@@ -131,21 +131,15 @@ router.post('/:id/restart', (req, res) => {
         if (isNaN(req.params.id)) {
             res.status(400).send({desc: 'The id needs to be a number!'}).end();
         } else if (req.params.id > config.scripts.length - 1) {
+            console.log('Max ammount of Workers = ' + config.scripts.length - 1)
             res.status(400).send({desc: 'The id is higher than the highest id.'}).end();
         } else if (req.params.id < 0) {
             res.status(400).send({desc: 'The id needs to be positive'}).end();
         } else {
             console.log(`Starting data: ${JSON.stringify(config.scripts[req.params.id])}`);
 
-            const id = workers.push({executing: ''}) - 1;
+            const id = req.params.id;
 
-            const command = config.scripts[req.params.id].script
-                .replace('{{BACKUP_LOCATION}}', config.projectLoaction + '/' + config.backupLocation + '/back-' + id)
-                .replace('{{BACKUP_FILE_NAME}}', `backup-${id}.back`);
-
-            workers[id].executing = command;
-
-            console.log(`All Workers: ${JSON.stringify(workers)}`);
             console.log(`Worker id: ${id}`);
 
             const out = fs.openSync(`${config.logFilesLocation}/out-${id}.log`, 'a');
@@ -154,7 +148,7 @@ router.post('/:id/restart', (req, res) => {
             workers[id].finished = false;
             workers[id].state = 'RUNNING';
 
-            workers[id].child = spawn(command, [], {
+            workers[id].child = spawn(workers[id].executing, [], {
                 shell: process.env.ComSpec,
                 detached: true,
                 stdio: [ 'ignore', out, err ]
@@ -169,7 +163,7 @@ router.post('/:id/restart', (req, res) => {
                 workers[id].child.unref();
             });
 
-            res.status(200).send({workerId: id, executing: command}).end();
+            res.status(200).send({workerId: id, executing: workers[id].executing}).end();
         }
 
     } else {
