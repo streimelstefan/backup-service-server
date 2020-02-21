@@ -106,11 +106,16 @@ router.delete('/:id/backup', (req, res) => {
         const filePath = config.projectLoaction + '/' + config.backupLocation + '/backup-' + id + '.zip';
         const dirPath = config.projectLoaction + '/' + config.backupLocation + '/back-' + id;
 
-        if (fs.existsSync(filePath) && fs.existsSync(dirPath)) {
+        if (fs.existsSync(filePath) || fs.existsSync(dirPath)) {
             console.log('Files exist');
 
-            fs.unlinkSync(filePath);
-            rimraf.sync(dirPath);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+
+            if (fs.existsSync(dirPath)) {
+                rimraf.sync(dirPath);
+            }
 
             res.status(200).end();
 
