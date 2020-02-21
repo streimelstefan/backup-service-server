@@ -127,16 +127,17 @@ router.delete('/:id/backup', (req, res) => {
 router.post('/:id/restart', (req, res) => {
     if (req.session.authenticated) {
         console.log(`User wants to restart: ${req.params.id}`);
+        console.log('Workers online: ' + workers.length);
 
         if (isNaN(req.params.id)) {
             res.status(400).send({desc: 'The id needs to be a number!'}).end();
-        } else if (req.params.id > config.scripts.length - 1) {
-            console.log('Max ammount of Workers = ' + config.scripts.length - 1)
+        } else if (req.params.id > workers.length - 1) {
+            console.log('Max ammount of Worker ID = ' + workers.length - 1)
             res.status(400).send({desc: 'The id is higher than the highest id.'}).end();
         } else if (req.params.id < 0) {
             res.status(400).send({desc: 'The id needs to be positive'}).end();
         } else {
-            console.log(`Starting data: ${JSON.stringify(config.scripts[req.params.id])}`);
+            console.log(`Starting data: ${JSON.stringify(workers[req.params.id])}`);
 
             const id = req.params.id;
 
