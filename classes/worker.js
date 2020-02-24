@@ -38,6 +38,11 @@ class Worker {
             this.state = 'SUCCESS';
             this.child.unref();
             console.log(`[WORKER-${this.workerId}][LOG]: Worker finished running.`);
+
+            setTimeout(() => {
+                console.log(`[WORKER-${this.workerId}][LOG]: Releasing Worker.`);
+                this.state = 'PASSIVE'
+            }, config.minWaitTime);
         });
 
     }

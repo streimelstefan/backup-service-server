@@ -140,9 +140,9 @@ router.post('/:id/restart', (req, res) => {
             res.status(400).send({desc: 'The id is higher than the highest id.'}).end();
         } else if (req.params.id < 0) {
             res.status(400).send({desc: 'The id needs to be positive'}).end();
-        } else if (workers[req.params.id].state != 'PASSIVE' && workers[req.params.id].state != 'FINISHED' ) {
-            console.error(`[ROUTE][ERROR][v1/workers/:id/restart]: The Worker that the user wants to restart is currently running.`);
-            res.status(425).send({desc: 'This worker is running right now.'});
+        } else if (workers[req.params.id].state != 'PASSIVE') {
+            console.error(`[ROUTE][ERROR][v1/workers/:id/restart]: The Worker that the user wants to restart is currently running or hasn't been released yet.`);
+            res.status(425).send({desc: 'This worker is running right now or hasnt been released yet.'});
         } else {
             console.log(`[ROUTE][LOG][v1/workers/:id/restart]: Starting data: ${JSON.stringify(workers[req.params.id])}`);
 

@@ -10,7 +10,8 @@ const config = {
     ],
     logFilesLocation: 'logs',
     projectLoaction: '',
-    backupLocation: 'backup'
+    backupLocation: 'backup',
+    minWaitTime: 300000
 }
 
 module.exports = config;
