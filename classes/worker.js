@@ -39,10 +39,15 @@ class Worker {
             executingDir = this.executingDir;
         }
 
+        let shell = process.env.ComSpec;
+        if (config.runsInLinux) {
+            shell = '/bin/sh';
+        }
+
         console.log(`[WORKER-${this.workerId}][LOG]: Starting to run Worker`);
 
         this.child = spawn(this.command, [], {
-            shell: process.env.ComSpec,
+            shell: shell,
             detached: true,
             stdio: [ 'ignore', out, err ],
             cwd: executingDir,
