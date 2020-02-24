@@ -109,7 +109,7 @@ function addDirToArchive(dir, backname, preset) {
     });
 
     archive.on('error', function(err){
-        console.error(`${preset}[LOG][ARCHIVER]: error Archiving: ${err}`)
+        console.error(`${preset}[ERROR][ARCHIVER]: error Archiving: ${err}`)
         throw err;
     });
 
