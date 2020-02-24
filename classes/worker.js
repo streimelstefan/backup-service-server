@@ -19,6 +19,13 @@ class Worker {
 
     runWorker() {
         console.log(`[WORKER-${this.workerId}][LOG]: Setting up Worker.`);
+        if (!fs.existsSync(`${this.logOutPutDir}/out-${this.workerId}.log`)) {
+            fs.createFileSync(`${this.logOutPutDir}/out-${this.workerId}.log`);
+        }
+        if (!fs.existsSync(`${this.errOutPutDir}/errout-${this.workerId}.log`)) {
+            fs.createFileSync(`${this.errOutPutDir}/errout-${this.workerId}.log`);
+        }
+
         const out = fs.openSync(`${this.logOutPutDir}/out-${this.workerId}.log`, 'a');
         const err = fs.openSync(`${this.errOutPutDir}/errout-${this.workerId}.log`, 'a');
 
