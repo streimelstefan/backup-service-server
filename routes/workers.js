@@ -76,7 +76,7 @@ router.get('/:id/getBackupFile', (req, res) => {
     if (req.session.authenticated) {
         console.log('[ROUTE][LOG][v1/workers/:id/getBackupFile]: User is authenticated');
         const id = req.params.id
-        console.log('[ROUTE][LOG][v1/workers/:id/getBackupFile]: User asking for state of worker with id ' + id);
+        console.log('[ROUTE][LOG][v1/workers/:id/getBackupFile]: User asking for backup of worker with id ' + id);
 
         const filePath = config.projectLoaction + '/' + config.backupLocation + '/backup-' + id + '.zip';
         console.log('[ROUTE][LOG][v1/workers/:id/getBackupFile]: FilePaht: ' + filePath);
