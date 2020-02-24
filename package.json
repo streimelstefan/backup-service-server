@@ -12,6 +12,7 @@
     "debug": "~2.6.9",
     "express": "~4.16.1",
     "express-session": "^1.17.0",
+    "fs-extra": "^8.1.0",
     "rimraf": "^3.0.2"
   }
 }

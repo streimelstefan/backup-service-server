@@ -69,7 +69,13 @@ router.post('/:id/register', (req, res) => {
                 .replace('{{BACKUP_LOCATION}}', config.projectLoaction + '/' + config.backupLocation + '/back-' + id)
                 .replace('{{BACKUP_FILE_NAME}}', `backup-${id}.back`);
 
-            workers[id] = new Worker(command, id, config.logFilesLocation, config.logFilesLocation, __dirname);
+            let backupLocation = null;
+            if (config.scripts[req.params.id].outputDir) {
+                backupLocation = config.scripts[req.params.id].outputDir;
+            }
+
+
+            workers[id] = new Worker(command, id, config.logFilesLocation, config.logFilesLocation, backupLocation, config.scripts[req.params.id].useCopy);
 
             console.log(`[ROUTE][LOG][v1/scripts/:id/register]: Registered Worker: ${JSON.stringify(workers[id])}`);
             console.log(`[ROUTE][LOG][v1/scripts/:id/register]: Worker id: ${id}`);

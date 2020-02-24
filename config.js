@@ -5,13 +5,15 @@ const config = {
     },
     scripts: [
         {
-            script: "echo {{BACKUP_LOCATION}}/{{BACKUP_FILE_NAME}}"
+            script: "echo {{BACKUP_LOCATION}}/{{BACKUP_FILE_NAME}}",
+            outputDir: 'C:/Temp',
+            useCopy: true
         }
     ],
     logFilesLocation: 'logs',
     projectLoaction: '',
     backupLocation: 'backup',
-    minWaitTime: 60000
+    minWaitTime: 100
 }
 
 module.exports = config;
