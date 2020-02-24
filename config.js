@@ -5,9 +5,10 @@ const config = {
     },
     scripts: [
         {
-            script: "echo {{BACKUP_LOCATION}}/{{BACKUP_FILE_NAME}}",
+            script: "mkdir testFolder",
             outputDir: 'C:/Temp',
-            useCopy: true
+            useCopy: true,
+            executingDir: 'C:/Temp'
         }
     ],
     logFilesLocation: 'logs',

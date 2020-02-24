@@ -75,7 +75,10 @@ router.post('/:id/register', (req, res) => {
             }
 
 
-            workers[id] = new Worker(command, id, config.logFilesLocation, config.logFilesLocation, backupLocation, config.scripts[req.params.id].useCopy);
+            workers[id] = new Worker(command, id, config.logFilesLocation,
+                                     config.logFilesLocation, backupLocation,
+                                     config.scripts[req.params.id].useCopy,
+                                     config.scripts[req.params.id].executingDir);
 
             console.log(`[ROUTE][LOG][v1/scripts/:id/register]: Registered Worker: ${JSON.stringify(workers[id])}`);
             console.log(`[ROUTE][LOG][v1/scripts/:id/register]: Worker id: ${id}`);
