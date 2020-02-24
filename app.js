@@ -39,6 +39,7 @@ app.use(function onError(err, req, res, next) {
     // and optionally displayed to the user for support.
     res.statusCode = 500;
     res.end(res.sentry + "\n");
+    console.error(err);
 });
 
 config.projectLoaction = __dirname;

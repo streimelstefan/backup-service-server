@@ -5,7 +5,7 @@ const spawn = require('child_process').spawn;
 const rimraf = require("rimraf");
 
 class Worker {
-    constructor(command, workerId, logOutPutDir, errOutPutDir, backupFilesLoc, useCopy, executingDir) {
+    constructor(command, workerId, logOutPutDir, errOutPutDir, backupFilesLoc, useCopy, executingDir, env) {
         this.command = command;
         this.workerId = workerId;
         this.state = 'PASSIVE';
@@ -15,6 +15,7 @@ class Worker {
         this.useCopy = useCopy;
         this.executingDir = executingDir;
         this.child = null;
+        this.env = env;
     }
 
     runWorker() {
@@ -31,6 +32,8 @@ class Worker {
 
         this.state = 'RUNNING';
 
+        const env = this.getEnvirement();
+
         let executingDir = undefined;
         if (this.executingDir) {
             executingDir = this.executingDir;
@@ -42,13 +45,26 @@ class Worker {
             shell: process.env.ComSpec,
             detached: true,
             stdio: [ 'ignore', out, err ],
-            cwd: executingDir
+            cwd: executingDir,
+            env: env
         });
 
         this.child.on('close', (code) => {
             this.finishExecution(code);
         });
 
+    }
+
+    getEnvirement() {
+        let env = process.env;
+
+        if (this.env) {
+            this.env.forEach(variable => {
+                env[variable.key] = variable.value;
+            });
+        }
+
+        return env
     }
 
     finishExecution(code) {

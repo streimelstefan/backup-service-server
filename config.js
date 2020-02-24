@@ -8,7 +8,13 @@ const config = {
             script: "mkdir testFolder",
             outputDir: 'C:/Temp',
             useCopy: true,
-            executingDir: 'C:/Temp'
+            executingDir: 'C:/Temp',
+            envirement: [
+                {
+                    key: 'xyz',
+                    value: 'test'
+                }
+            ]
         }
     ],
     logFilesLocation: 'logs',
