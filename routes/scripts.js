@@ -1,15 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const config = require('../config');
-const spawn = require('child_process').spawn;
-let workers = require('../data/workers-safe');
-const fs = require('fs');
-const archiver = require('archiver');
+let workers = require('../classes/worker').workers;
+const Worker = require('../classes/worker').Worker;
 
 router.route('')
     .get((req, res) => {
         if (req.session.authenticated) {
-            console.log('The User is Authenticated');
+            console.log('[ROUTE][LOG][v1/scripts]: The User is Authenticated');
 
             let data = [];
 
@@ -19,28 +17,31 @@ router.route('')
 
             res.status(200).send(data).end();
         } else {
-            console.error('The User is not Authenticated');
+            console.error('[ROUTE][ERROR][v1/scripts]: The User is not Authenticated');
             res.status(403).send({desc: 'Please Authenticate first'}).end();
         }
     });
 
 router.get('/:id', (req, res) => {
     if (req.session.authenticated) {
-        console.log(`User wants to request: ${req.params.id}`);
+        console.log(`[ROUTE][LOG][v1/scripts/:id]: User wants to request: ${req.params.id}`);
 
         if (isNaN(req.params.id)) {
+            console.error('[ROUTE][ERROR][v1/scripts/:id]: User did not use a number as id.');
             res.status(400).send({desc: 'The id needs to be a number!'}).end();
         } else if (req.params.id > config.scripts.length - 1) {
+            console.error('[ROUTE][ERROR][v1/scripts/:id]: User id is out of bounds');
             res.status(400).send({desc: 'The id is higher than the highest id.'}).end();
         } else if (req.params.id < 0) {
+            console.error('[ROUTE][ERROR][v1/scripts/:id]: User id is negative.');
             res.status(400).send({desc: 'The id needs to be positive'}).end();
         } else {
-            console.log(`Sending data: ${config.scripts[req.params.id]}`);
+            console.log(`[ROUTE][LOG][v1/scripts/:id]: Sending data: ${config.scripts[req.params.id]}`);
             res.status(200).send({id: req.params.id, ...config.scripts[req.params.id]}).end();
         }
 
     } else {
-        console.error('The User is not authenticated');
+        console.error('[ROUTE][ERROR][v1/scripts/:id]: The User is not authenticated');
         res.status(403).send('Please Authenticate first').end();
     }
 });
@@ -48,27 +49,30 @@ router.get('/:id', (req, res) => {
 router.post('/:id/register', (req, res) => {
     console.log(req.cookies);
     if (req.session.authenticated) {
-        console.log(`User wants to start: ${req.params.id}`);
+        console.log(`[ROUTE][LOG][v1/scripts/:id/register]: User wants to register: ${req.params.id}`);
 
         if (isNaN(req.params.id)) {
+            console.error('[ROUTE][ERROR][v1/scripts/:id/register]: User did not use a number as id.');
             res.status(400).send({desc: 'The id needs to be a number!'}).end();
         } else if (req.params.id > config.scripts.length - 1) {
+            console.error('[ROUTE][ERROR][v1/scripts/:id/register]: User id out of bounds.');
             res.status(400).send({desc: 'The id is higher than the highest id.'}).end();
         } else if (req.params.id < 0) {
+            console.error('[ROUTE][ERROR][v1/scripts/:id/register]: User id is lower than 0');
             res.status(400).send({desc: 'The id needs to be positive'}).end();
         } else {
-            console.log(`Starting data: ${JSON.stringify(config.scripts[req.params.id])}`);
+            console.log(`[ROUTE][LOG][v1/scripts/:id/register]: Starting data: ${JSON.stringify(config.scripts[req.params.id])}`);
 
-            const id = workers.push({executing: ''}) - 1;
+            const id = workers.push(null) - 1;
 
             const command = config.scripts[req.params.id].script
                 .replace('{{BACKUP_LOCATION}}', config.projectLoaction + '/' + config.backupLocation + '/back-' + id)
                 .replace('{{BACKUP_FILE_NAME}}', `backup-${id}.back`);
 
-            workers[id].executing = command;
+            workers[id] = new Worker(command, id, config.logFilesLocation, config.logFilesLocation, __dirname);
 
-            console.log(`All Workers: ${JSON.stringify(workers)}`);
-            console.log(`Worker id: ${id}`);
+            console.log(`[ROUTE][LOG][v1/scripts/:id/register]: Registered Worker: ${JSON.stringify(workers[id])}`);
+            console.log(`[ROUTE][LOG][v1/scripts/:id/register]: Worker id: ${id}`);
 
             res.status(200).send({workerId: id, executing: command}).end();
         }
