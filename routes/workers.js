@@ -4,6 +4,7 @@ const config = require('../config');
 const fs = require('fs');
 const workers = require('../classes/worker').workers;
 const Worker = require('../classes/worker').Worker;
+const rimraf = require('rimraf');
 
 
 router.route('/:id/errorlog')
