@@ -32,9 +32,9 @@ class Worker {
 
         this.child.on('close', (code) => {
             console.log(`[WORKER-${this.workerId}][LOG]: Worker finished with code ${code}`);
-            const location = config.projectLoaction + '/' + config.backupLocation + '/back-' + id;
+            const location = config.projectLoaction + '/' + config.backupLocation + '/back-' + this.workerId;
             console.log(`[WORKER-${this.workerId}][LOG]: Backup-Location =  ${location}`);
-            addDirToArchive(location, `${config.projectLoaction}/${config.backupLocation}/backup-${id}.zip`);
+            addDirToArchive(location, `${config.projectLoaction}/${config.backupLocation}/backup-${this.workerId}.zip`, `[WORKER-${this.workerId}]`);
             this.state = 'SUCCESS';
             this.child.unref();
             console.log(`[WORKER-${this.workerId}][LOG]: Worker finished running.`);
@@ -50,16 +50,17 @@ class Worker {
 
 workers = [];
 
-function addDirToArchive(dir, backname) {
+function addDirToArchive(dir, backname, preset) {
     var output = fs.createWriteStream(backname);
     var archive = archiver('zip');
 
     output.on('close', function () {
-        console.log(archive.pointer() + ' total bytes');
-        console.log('archiver has been finalized and the output file descriptor has closed.');
+        console.log(`${preset}[LOG][ARCHIVER]: ${archive.pointer()} total bytes archived`);
+        console.log(`${preset}[LOG][ARCHIVER]: archiver has been finalized and the output file descriptor has closed.`);
     });
 
     archive.on('error', function(err){
+        console.error(`${preset}[LOG][ARCHIVER]: error Archiving: ${err}`)
         throw err;
     });
 
