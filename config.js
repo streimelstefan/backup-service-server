@@ -20,7 +20,7 @@ const config = {
     logFilesLocation: 'logs',
     projectLoaction: '',
     backupLocation: 'backup',
-    minWaitTime: 100,
+    minWaitTime: 10000,
     runsInLinux: false
 }
 

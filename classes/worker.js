@@ -3,6 +3,7 @@ const config = require('../config');
 const archiver = require('archiver');
 const spawn = require('child_process').spawn;
 const rimraf = require("rimraf");
+var shell = require('shelljs');
 
 class Worker {
     constructor(command, workerId, logOutPutDir, errOutPutDir, backupFilesLoc, useCopy, executingDir, env) {
@@ -25,6 +26,11 @@ class Worker {
         }
         if (!fs.existsSync(`${this.errOutPutDir}/errout-${this.workerId}.log`)) {
             fs.createFileSync(`${this.errOutPutDir}/errout-${this.workerId}.log`);
+        }
+
+        // if the directory for the backup is not existent create it
+        if (!fs.existsSync(this.backupFilesLoc)) {
+            shell.mkdir('-p', backupFilesLoc);
         }
 
         const out = fs.openSync(`${this.logOutPutDir}/out-${this.workerId}.log`, 'a');
