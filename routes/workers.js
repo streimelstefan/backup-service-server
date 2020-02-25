@@ -73,7 +73,7 @@ router.get('/:id/state', (req, res) => {
     }
 });
 
-router.get('/:id/getBackupFile', (req, res) => {
+router.post('/:id/getBackupFile', (req, res) => {
     if (req.session.authenticated) {
         console.log('[ROUTE][LOG][v1/workers/:id/getBackupFile]: User is authenticated');
         const id = req.params.id
@@ -84,6 +84,7 @@ router.get('/:id/getBackupFile', (req, res) => {
 
         if (fs.existsSync(filePath)) {
 
+            res.header("Content-Type", "application/zip, application/octet-stream");
             res.sendFile(filePath, {
                 dotfiles: 'allow',
             });
