@@ -141,7 +141,9 @@ workers = [];
 
 function addDirToArchive(dir, backname, preset) {
     var output = fs.createWriteStream(backname);
-    var archive = archiver('zip');
+    var archive = archiver('zip', {
+        store: true
+    });
 
     output.on('close', function () {
         console.log(`${preset}[LOG][ARCHIVER]: ${archive.pointer()} total bytes archived`);
