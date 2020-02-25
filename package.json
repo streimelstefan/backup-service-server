@@ -7,12 +7,12 @@
   },
   "dependencies": {
     "@sentry/node": "^5.12.2",
-    "archiver": "^3.1.1",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",
     "express-session": "^1.17.0",
     "fs-extra": "^8.1.0",
-    "rimraf": "^3.0.2"
+    "rimraf": "^3.0.2",
+    "zip-local": "^0.3.4"
   }
 }

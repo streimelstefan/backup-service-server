@@ -1,8 +1,7 @@
 const fs = require('fs-extra');
 const config = require('../config');
-const archiver = require('archiver');
 const spawn = require('child_process').spawn;
-const rimraf = require("rimraf");
+const zipper = require("zip-local");
 
 class Worker {
     constructor(command, workerId, logOutPutDir, errOutPutDir, backupFilesLoc, useCopy, executingDir, env) {
@@ -140,25 +139,12 @@ class Worker {
 workers = [];
 
 function addDirToArchive(dir, backname, preset) {
-    var output = fs.createWriteStream(backname);
-    var archive = archiver('zip', {
-        store: true
-    });
-
-    output.on('close', function () {
-        console.log(`${preset}[LOG][ARCHIVER]: ${archive.pointer()} total bytes archived`);
-        console.log(`${preset}[LOG][ARCHIVER]: archiver has been finalized and the output file descriptor has closed.`);
-    });
-
-    archive.on('error', function(err){
-        console.error(`${preset}[ERROR][ARCHIVER]: error Archiving: ${err}`)
-        throw err;
-    });
-
-    archive.pipe(output);
-    archive.directory(dir, false);
-    archive.finalize();
+    zipper.sync.zip(dir).compress().save(backname);
+    console.log('finished zipping');
 }
+
+
+
 
 module.exports.Worker = Worker;
 module.exports.workers = workers;
