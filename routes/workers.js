@@ -28,7 +28,7 @@ router.route('/:id/errorlog')
             }
         } else {
             console.error('[ROUTE][ERROR][v1/workers/:id/errorlog]: User is not authenticated');
-            res.status(403).send({desc: 'Please authenticate first!'});
+            res.status(401).send({desc: 'Please authenticate first!'});
         }
     });
 
@@ -51,7 +51,7 @@ router.get('/:id/stdlog', (req, res) => {
         }
     } else {
         console.error('[ROUTE][ERROR][v1/workers/:id/stdlog]: User is not authenticated');
-        res.status(403).send({desc: 'Please authenticate first!'}).end();
+        res.status(401).send({desc: 'Please authenticate first!'}).end();
     }
 });
 
@@ -69,7 +69,7 @@ router.get('/:id/state', (req, res) => {
         }
     } else {
         console.error('[ROUTE][ERROR][v1/workers/:id/state]: User is not authenticated');
-        res.status(403).send({desc: 'Please authenticate first!'}).end();
+        res.status(401).send({desc: 'Please authenticate first!'}).end();
     }
 });
 
@@ -95,7 +95,7 @@ router.post('/:id/getBackupFile', (req, res) => {
         }
     } else {
         console.error('[ROUTE][ERROR][v1/workers/:id/getBackupFile]: User is not authenticated');
-        res.status(403).send({desc: 'Please authenticate first!'}).end();
+        res.status(401).send({desc: 'Please authenticate first!'}).end();
     }
 });
 
@@ -126,7 +126,7 @@ router.delete('/:id/backup', (req, res) => {
         }
     } else {
         console.error('[ROUTE][ERROR][v1/workers/:id/backup]: The User is not authenticated');
-        res.status(403).send('Please Authenticate first').end();
+        res.status(401).send('Please Authenticate first').end();
     }
 });
 
@@ -159,7 +159,7 @@ router.post('/:id/restart', (req, res) => {
 
     } else {
         console.error('[ROUTE][LOG][v1/workers/:id/restart]: The User is not authenticated');
-        res.status(403).send('Please Authenticate first').end();
+        res.status(401).send('Please Authenticate first').end();
     }
 });
 

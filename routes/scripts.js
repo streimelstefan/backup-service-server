@@ -18,7 +18,7 @@ router.route('')
             res.status(200).send(data).end();
         } else {
             console.error('[ROUTE][ERROR][v1/scripts]: The User is not Authenticated');
-            res.status(403).send({desc: 'Please Authenticate first'}).end();
+            res.status(401).send({desc: 'Please Authenticate first'}).end();
         }
     });
 
@@ -42,7 +42,7 @@ router.get('/:id', (req, res) => {
 
     } else {
         console.error('[ROUTE][ERROR][v1/scripts/:id]: The User is not authenticated');
-        res.status(403).send('Please Authenticate first').end();
+        res.status(401).send('Please Authenticate first').end();
     }
 });
 
@@ -89,7 +89,7 @@ router.post('/:id/register', (req, res) => {
 
     } else {
         console.error('The User is not authenticated');
-        res.status(403).send('Please Authenticate first').end();
+        res.status(401).send('Please Authenticate first').end();
     }
 });
 
