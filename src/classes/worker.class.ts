@@ -1,10 +1,36 @@
+declare function require(path: string): any;
 const fs = require('fs-extra');
-const config = require('../config');
-const spawn = require('child_process').spawn;
+import config = require('../config');
+import child_process = require('child_process');
+import { workers } from 'cluster';
 const zipper = require("zip-local");
 
-class Worker {
-    constructor(command, workerId, logOutPutDir, errOutPutDir, backupFilesLoc, useCopy, executingDir, env) {
+export class Worker {
+
+    private static wokers = new Array<Worker>(0);
+
+    public command: string;
+    public workerId: number;
+    public state: 'PASSIVE' | 'RUNNING' | 'ERROR' | 'READY' | 'SUCCESS';
+    public logOutPutDir: string;
+    public errOutPutDir: string;
+    public backupFilesLoc: string | null;
+    public useCopy: boolean;
+    public executingDir: string;
+    public child: child_process.ChildProcess | null;
+    public env: {key: string, value: string}[];
+
+    constructor (
+        command: string,
+        workerId: number,
+        logOutPutDir: string,
+        errOutPutDir: string,
+        backupFilesLoc: string | null,
+        useCopy: boolean,
+        executingDir: string,
+        env: {key: string, value: string}[]
+        )
+    {
         this.command = command;
         this.workerId = workerId;
         this.state = 'PASSIVE';
@@ -50,7 +76,7 @@ class Worker {
 
         console.log(`[WORKER-${this.workerId}][LOG]: Starting to run Worker`);
 
-        this.child = spawn(this.command, [], {
+        this.child = child_process.spawn(this.command, [], {
             shell: shell,
             detached: true,
             stdio: [ 'ignore', out, err ],
@@ -76,7 +102,7 @@ class Worker {
         return env
     }
 
-    finishExecution(code) {
+    finishExecution(code: number) {
         console.log(`[WORKER-${this.workerId}][LOG]: Worker finished with code ${code}`);
 
         // setting backup dir
@@ -90,7 +116,7 @@ class Worker {
             if (this.useCopy) {
 
                 // copy the filloc dir to the backup dir
-                fs.copy(this.backupFilesLoc, location, err => {
+                fs.copy(this.backupFilesLoc, location, (err: any) => {
                     if(err) {
                         return console.error(`[WORKER-${this.workerId}][ERROR]: Error while coping dir:  ${err}`);
                     }
@@ -102,7 +128,7 @@ class Worker {
 
             } else {
                 // move the filloc dir to the backup dir
-                fs.move(this.backupFilesLoc, location, err => {
+                fs.move(this.backupFilesLoc, location, (err: any) => {
                     if(err) {
                         return console.error(`[WORKER-${this.workerId}][ERROR]: Error while moving dir:  ${err}`);
                     }
@@ -118,33 +144,46 @@ class Worker {
         }
     }
 
-    archiveBackupData(location) {
+    archiveBackupData(location: string) {
         console.log(`[WORKER-${this.workerId}][LOG]: Starting to Archive backup-data`);
         // Archiving the backup dir
-        addDirToArchive(location, `${config.projectLoaction}/${config.backupLocation}/backup-${this.workerId}.zip`, `[WORKER-${this.workerId}]`);
+        addDirToArchive(location, `${config.projectLoaction}/${config.backupLocation}/backup-${this.workerId}.zip`, `[WORKER-${this.workerId}]:`);
     }
 
     finishUp() {
-        this.state = 'SUCCESS';
-        this.child.unref();
-        console.log(`[WORKER-${this.workerId}][LOG]: Worker finished running.`);
+        if (this.child) {
+            this.state = 'SUCCESS';
+            this.child.unref();
+            console.log(`[WORKER-${this.workerId}][LOG]: Worker finished running.`);
 
-        setTimeout(() => {
-            console.log(`[WORKER-${this.workerId}][LOG]: Releasing Worker.`);
-            this.state = 'PASSIVE'
-        }, config.minWaitTime);
+            setTimeout(() => {
+                console.log(`[WORKER-${this.workerId}][LOG]: Releasing Worker.`);
+                this.state = 'PASSIVE'
+            }, config.minWaitTime);
+        } else {
+            this.state = 'ERROR';
+            console.error(`[WORKER-${this.workerId}][ERROR]: Child process was not found.`);
+        }
+    }
+
+    public static addWorkerToList(worker: Worker): number {
+        return Worker.wokers.push(worker) - 1;
+    }
+
+    public static getNewWorkerId(): number {
+        return Worker.wokers.length;
+    }
+
+    public static getWorkerWithId(id: number): Worker {
+        return Worker.wokers[id];
+    }
+
+    public static getWorkersListLength(): number {
+        return Worker.wokers.length;
     }
 }
 
-workers = [];
-
-function addDirToArchive(dir, backname, preset) {
+function addDirToArchive(dir: string, backname: string, preset: string) {
     zipper.sync.zip(dir).compress().save(backname);
-    console.log('finished zipping');
+    console.log(`${preset} finished zipping`);
 }
-
-
-
-
-module.exports.Worker = Worker;
-module.exports.workers = workers;

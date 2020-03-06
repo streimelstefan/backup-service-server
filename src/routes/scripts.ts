@@ -1,12 +1,12 @@
-const express = require('express');
+import * as express from 'express';
+import { Request, Response } from 'express-serve-static-core';
 const router = express.Router();
-const config = require('../config');
-let workers = require('../classes/worker').workers;
-const Worker = require('../classes/worker').Worker;
+import config = require('../config');
+import Worker = require('../classes/worker.class');
 
 router.route('')
-    .get((req, res) => {
-        if (req.session.authenticated) {
+    .get((req: Request, res: Response) => {
+        if (req!.session!.authenticated) {
             console.log('[ROUTE][LOG][v1/scripts]: The User is Authenticated');
 
             let data = [];
@@ -22,22 +22,24 @@ router.route('')
         }
     });
 
-router.get('/:id', (req, res) => {
-    if (req.session.authenticated) {
-        console.log(`[ROUTE][LOG][v1/scripts/:id]: User wants to request: ${req.params.id}`);
+router.get('/:id', (req: Request, res: Response) => {
+    if (req!.session!.authenticated) {
+        const id = req.params.id as unknown as number;
 
-        if (isNaN(req.params.id)) {
+        console.log(`[ROUTE][LOG][v1/scripts/:id]: User wants to request: ${id}`);
+
+        if (isNaN(id)) {
             console.error('[ROUTE][ERROR][v1/scripts/:id]: User did not use a number as id.');
             res.status(400).send({desc: 'The id needs to be a number!'}).end();
-        } else if (req.params.id > config.scripts.length - 1) {
+        } else if (id > config.scripts.length - 1) {
             console.error('[ROUTE][ERROR][v1/scripts/:id]: User id is out of bounds');
             res.status(400).send({desc: 'The id is higher than the highest id.'}).end();
-        } else if (req.params.id < 0) {
+        } else if (id < 0) {
             console.error('[ROUTE][ERROR][v1/scripts/:id]: User id is negative.');
             res.status(400).send({desc: 'The id needs to be positive'}).end();
         } else {
-            console.log(`[ROUTE][LOG][v1/scripts/:id]: Sending data: ${config.scripts[req.params.id]}`);
-            res.status(200).send({id: req.params.id, ...config.scripts[req.params.id]}).end();
+            console.log(`[ROUTE][LOG][v1/scripts/:id]: Sending data: ${config.scripts[id]}`);
+            res.status(200).send({id: req.params.id, ...config.scripts[id]}).end();
         }
 
     } else {
@@ -46,42 +48,44 @@ router.get('/:id', (req, res) => {
     }
 });
 
-router.post('/:id/register', (req, res) => {
+router.post('/:id/register', (req: Request, res: Response) => {
     console.log(req.cookies);
-    if (req.session.authenticated) {
-        console.log(`[ROUTE][LOG][v1/scripts/:id/register]: User wants to register: ${req.params.id}`);
+    if (req!.session!.authenticated) {
+        const sid = req.params.id as unknown as number;
 
-        if (isNaN(req.params.id)) {
+        console.log(`[ROUTE][LOG][v1/scripts/:id/register]: User wants to register: ${sid}`);
+
+        if (isNaN(sid)) {
             console.error('[ROUTE][ERROR][v1/scripts/:id/register]: User did not use a number as id.');
             res.status(400).send({desc: 'The id needs to be a number!'}).end();
-        } else if (req.params.id > config.scripts.length - 1) {
+        } else if (sid > config.scripts.length - 1) {
             console.error('[ROUTE][ERROR][v1/scripts/:id/register]: User id out of bounds.');
             res.status(400).send({desc: 'The id is higher than the highest id.'}).end();
-        } else if (req.params.id < 0) {
+        } else if (sid < 0) {
             console.error('[ROUTE][ERROR][v1/scripts/:id/register]: User id is lower than 0');
             res.status(400).send({desc: 'The id needs to be positive'}).end();
         } else {
-            console.log(`[ROUTE][LOG][v1/scripts/:id/register]: Starting data: ${JSON.stringify(config.scripts[req.params.id])}`);
+            console.log(`[ROUTE][LOG][v1/scripts/:id/register]: Starting data: ${JSON.stringify(config.scripts[sid])}`);
 
-            const id = workers.push(null) - 1;
+            const id = Worker.Worker.getNewWorkerId();
 
-            const command = config.scripts[req.params.id].script
+            const command = config.scripts[sid].script
                 .replace('{{BACKUP_LOCATION}}', config.projectLoaction + '/' + config.backupLocation + '/back-' + id)
                 .replace('{{BACKUP_FILE_NAME}}', `backup-${id}.back`);
 
             let backupLocation = null;
-            if (config.scripts[req.params.id].outputDir) {
-                backupLocation = config.scripts[req.params.id].outputDir;
+            if (config.scripts[sid].outputDir) {
+                backupLocation = config.scripts[sid].outputDir;
             }
 
 
-            workers[id] = new Worker(command, id, config.logFilesLocation,
+            Worker.Worker.addWorkerToList(new Worker.Worker(command, id, config.logFilesLocation,
                                      config.logFilesLocation, backupLocation,
-                                     config.scripts[req.params.id].useCopy,
-                                     config.scripts[req.params.id].executingDir,
-                                     config.scripts[req.params.id].envirement);
+                                     config.scripts[sid].useCopy,
+                                     config.scripts[sid].executingDir,
+                                     config.scripts[sid].envirement));
 
-            console.log(`[ROUTE][LOG][v1/scripts/:id/register]: Registered Worker: ${JSON.stringify(workers[id])}`);
+            console.log(`[ROUTE][LOG][v1/scripts/:id/register]: Registered Worker: ${JSON.stringify(Worker.Worker.getWorkerWithId(id))}`);
             console.log(`[ROUTE][LOG][v1/scripts/:id/register]: Worker id: ${id}`);
 
             res.status(200).send({workerId: id, executing: command}).end();
@@ -93,4 +97,4 @@ router.post('/:id/register', (req, res) => {
     }
 });
 
-module.exports = router;
+export = router;

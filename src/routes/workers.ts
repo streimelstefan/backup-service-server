@@ -1,15 +1,16 @@
-const express = require('express');
+declare function require(path: string): any;
+import * as express from 'express';
 const router = express.Router();
-const config = require('../config');
-const fs = require('fs');
-const workers = require('../classes/worker').workers;
-const Worker = require('../classes/worker').Worker;
+import { Request, Response } from 'express-serve-static-core';
+import config = require('../config');
+import fs = require('fs');
+import Worker = require('../classes/worker.class');
 const rimraf = require('rimraf');
 
 
 router.route('/:id/errorlog')
-    .get((req, res) => {
-        if (req.session.authenticated) {
+    .get((req: Request, res: Response) => {
+        if (req!.session!.authenticated) {
             console.log('[ROUTE][LOG][v1/workers/:id/errorlog]: User is authenticated');
             console.log('[ROUTE][LOG][v1/workers/:id/errorlog]: User asking for filw of worker with id ' + req.params.id);
             const filePath = config.projectLoaction + `/${config.logFilesLocation}/errout-${req.params.id}.log`;
@@ -32,8 +33,8 @@ router.route('/:id/errorlog')
         }
     });
 
-router.get('/:id/stdlog', (req, res) => {
-    if (req.session.authenticated) {
+router.get('/:id/stdlog', (req: Request, res: Response) => {
+    if (req!.session!.authenticated) {
         console.log('[ROUTE][LOG][v1/workers/:id/stdlog]: User is authenticated');
         console.log('[ROUTE][LOG][v1/workers/:id/stdlog]: User asking for filw of worker with id ' + req.params.id);
         const filePath = config.projectLoaction + `/${config.logFilesLocation}/out-${req.params.id}.log`;
@@ -55,17 +56,17 @@ router.get('/:id/stdlog', (req, res) => {
     }
 });
 
-router.get('/:id/state', (req, res) => {
-    if (req.session.authenticated) {
+router.get('/:id/state', (req: Request, res: Response) => {
+    if (req!.session!.authenticated) {
         console.log('[ROUTE][LOG][v1/workers/:id/state]: User is authenticated');
-        const id = req.params.id
+        const id = req.params.id as unknown as number;
         console.log('[ROUTE][LOG][v1/workers/:id/state]: User asking for state of worker with id ' + id);
 
-        if (id > workers.length - 1 || id < 0) {
+        if (id > Worker.Worker.getWorkersListLength() - 1 || id < 0) {
             console.error('[ROUTE][ERROR][v1/workers/:id/state]: Worker not in the worker Array.');
             res.status(404).end();
         } else {
-            res.status(200).send({state: workers[id].state}).end();
+            res.status(200).send({state: Worker.Worker.getWorkerWithId(id).state}).end();
         }
     } else {
         console.error('[ROUTE][ERROR][v1/workers/:id/state]: User is not authenticated');
@@ -73,8 +74,8 @@ router.get('/:id/state', (req, res) => {
     }
 });
 
-router.post('/:id/getBackupFile', (req, res) => {
-    if (req.session.authenticated) {
+router.post('/:id/getBackupFile', (req: Request, res: Response) => {
+    if (req!.session!.authenticated) {
         console.log('[ROUTE][LOG][v1/workers/:id/getBackupFile]: User is authenticated');
         const id = req.params.id
         console.log('[ROUTE][LOG][v1/workers/:id/getBackupFile]: User asking for backup of worker with id ' + id);
@@ -99,8 +100,8 @@ router.post('/:id/getBackupFile', (req, res) => {
     }
 });
 
-router.delete('/:id/backup', (req, res) => {
-    if (req.session.authenticated) {
+router.delete('/:id/backup', (req: Request, res: Response) => {
+    if (req!.session!.authenticated) {
         const id = req.params.id;
         console.log('[ROUTE][LOG][v1/workers/:id/backup]: User wants to delete files from worker: ' + id);
 
@@ -130,31 +131,31 @@ router.delete('/:id/backup', (req, res) => {
     }
 });
 
-router.post('/:id/restart', (req, res) => {
-    if (req.session.authenticated) {
-        console.log(`[ROUTE][LOG][v1/workers/:id/restart]: User wants to restart: ${req.params.id}`);
-        console.log('[ROUTE][LOG][v1/workers/:id/restart]: Workers online: ' + workers.length);
+router.post('/:id/restart', (req: Request, res: Response) => {
+    if (req!.session!.authenticated) {
+        const id = req.params.id as unknown as number;
 
-        if (isNaN(req.params.id)) {
+        console.log(`[ROUTE][LOG][v1/workers/:id/restart]: User wants to restart: ${id}`);
+        console.log('[ROUTE][LOG][v1/workers/:id/restart]: Workers online: ' + Worker.Worker.getWorkersListLength());
+
+        if (isNaN(id)) {
             res.status(400).send({desc: 'The id needs to be a number!'}).end();
-        } else if (req.params.id > workers.length - 1) {
-            console.error('[ROUTE][ERROR][v1/workers/:id/restart]: Max ammount of Worker ID = ' + workers.length - 1)
+        } else if (id > Worker.Worker.getWorkersListLength() - 1) {
+            console.error('[ROUTE][ERROR][v1/workers/:id/restart]: Max ammount of Worker ID = ' + (Worker.Worker.getWorkersListLength() - 1))
             res.status(400).send({desc: 'The id is higher than the highest id.'}).end();
-        } else if (req.params.id < 0) {
+        } else if (id < 0) {
             res.status(400).send({desc: 'The id needs to be positive'}).end();
-        } else if (workers[req.params.id].state != 'PASSIVE') {
+        } else if (Worker.Worker.getWorkerWithId(id).state != 'PASSIVE') {
             console.error(`[ROUTE][ERROR][v1/workers/:id/restart]: The Worker that the user wants to restart is currently running or hasn't been released yet.`);
             res.status(403).send({desc: 'This worker is running right now or hasnt been released yet.'});
         } else {
-            console.log(`[ROUTE][LOG][v1/workers/:id/restart]: Starting data: ${JSON.stringify(workers[req.params.id])}`);
-
-            const id = req.params.id;
+            console.log(`[ROUTE][LOG][v1/workers/:id/restart]: Starting data: ${JSON.stringify(Worker.Worker.getWorkerWithId(id))}`);
 
             console.log(`[ROUTE][LOG][v1/workers/:id/restart]: Restarting Worker with id: ${id}`);
 
-            workers[id].runWorker();
+            Worker.Worker.getWorkerWithId(id).runWorker();
 
-            res.status(200).send({workerId: id, executing: workers[id].command}).end();
+            res.status(200).send({workerId: id, executing: Worker.Worker.getWorkerWithId(id).command}).end();
         }
 
     } else {
@@ -164,4 +165,4 @@ router.post('/:id/restart', (req, res) => {
 });
 
 
-module.exports = router;
+export = router;

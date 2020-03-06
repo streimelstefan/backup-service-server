@@ -10,6 +10,9 @@ logs/
 #backup folder
 backup/
 
+# built folder
+build
+
 # Runtime data
 pids
 *.pid
