@@ -24,4 +24,4 @@ const config = {
     runsInLinux: false
 }
 
-module.exports = config;
+export = config;

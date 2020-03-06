@@ -1,7 +1,7 @@
-const express = require('express');
-const Sentry = require('@sentry/node');
-const cookieParser = require('cookie-parser');
-const session = require('express-session')
+import * as express from 'express';
+import Sentry = require('@sentry/node');
+import * as cookieParser from 'cookie-parser';
+import * as session from 'express-session';
 let config = require('./config');
 
 const authRouter = require('./routes/auth');
@@ -12,7 +12,7 @@ const app = express();
 
 Sentry.init({ dsn: 'https://4af2b64fb73e4f61b5324038ddc341cb@sentry.streimel.com/2' });
 
-app.use(Sentry.Handlers.requestHandler());
+app.use(Sentry.Handlers.requestHandler() as express.RequestHandler);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -30,11 +30,11 @@ app.get('/debug-sentry', function mainHandler(req, res) {
 });
 
 // The error handler must be before any other error middleware and after all controllers
-app.use(Sentry.Handlers.errorHandler());
+app.use(Sentry.Handlers.errorHandler() as express.ErrorRequestHandler);
 
 
 // Optional fallthrough error handler
-app.use(function onError(err, req, res, next) {
+app.use(function onError(err: any, req: any, res: any, next: any) {
     // The error id is attached to `res.sentry` to be returned
     // and optionally displayed to the user for support.
     res.statusCode = 500;
@@ -44,4 +44,4 @@ app.use(function onError(err, req, res, next) {
 
 config.projectLoaction = __dirname;
 
-module.exports = app;
+export = app;
