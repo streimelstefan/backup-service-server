@@ -2,7 +2,7 @@ declare function require(path: string): any;
 import * as express from 'express';
 const router = express.Router();
 import { Request, Response } from 'express-serve-static-core';
-import config = require('../config');
+import config = require('../classes/config.class');
 import fs = require('fs');
 import Worker = require('../classes/worker.class');
 const rimraf = require('rimraf');

@@ -2,11 +2,23 @@ import * as express from 'express';
 import Sentry = require('@sentry/node');
 import * as cookieParser from 'cookie-parser';
 import * as session from 'express-session';
-let config = require('./config');
+let configIn = require('./config');
+let config = require('./classes/config.class');
+
+config.setUser(configIn.user.id, configIn.user.pwd);
+config.setScirpts(configIn.scripts);
+config.setlogFilesLocation(configIn.logFilesLocation);
+config.setBackupLocation(configIn.backupLocation);
+config.setMinTimeOut(configIn.minWaitTime);
+config.setRunsInLinux(configIn.runsInLinux);
+
+console.log(JSON.stringify(config));
 
 const authRouter = require('./routes/auth');
 const scrpitRouter = require('./routes/scripts');
 const workersRouter = require('./routes/workers');
+
+
 
 const app = express();
 
@@ -41,7 +53,5 @@ app.use(function onError(err: any, req: any, res: any, next: any) {
     res.end(res.sentry + "\n");
     console.error(err);
 });
-
-config.projectLoaction = __dirname;
 
 export = app;

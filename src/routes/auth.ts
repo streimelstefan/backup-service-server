@@ -1,7 +1,7 @@
 import * as express from 'express';
 import { Request, Response } from 'express-serve-static-core';
 const router = express.Router();
-import config = require('../config');
+import config = require('../classes/config.class');
 
 router.route('/login')
     .post((req: Request, res: Response) => {

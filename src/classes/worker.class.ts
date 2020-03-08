@@ -1,8 +1,7 @@
 declare function require(path: string): any;
 const fs = require('fs-extra');
-import config = require('../config');
+import config = require('../classes/config.class');
 import child_process = require('child_process');
-import { workers } from 'cluster';
 const zipper = require("zip-local");
 
 export class Worker {

@@ -1,7 +1,7 @@
 import * as express from 'express';
 import { Request, Response } from 'express-serve-static-core';
 const router = express.Router();
-import config = require('../config');
+import config = require('../classes/config.class');
 import Worker = require('../classes/worker.class');
 
 router.route('')
@@ -69,7 +69,7 @@ router.post('/:id/register', (req: Request, res: Response) => {
 
             const id = Worker.Worker.getNewWorkerId();
 
-            const command = config.scripts[sid].script
+            const command = config.scripts[sid].command
                 .replace('{{BACKUP_LOCATION}}', config.projectLoaction + '/' + config.backupLocation + '/back-' + id)
                 .replace('{{BACKUP_FILE_NAME}}', `backup-${id}.back`);
 

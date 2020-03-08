@@ -5,7 +5,32 @@ const config = {
     },
     scripts: [
         {
-            script: "mkdir testFolder",
+            command: "mkdir testFolder",
+            outputDir: 'C:/Temp',
+            useCopy: true,
+            executingDir: 'C:/Temp',
+            envirement: [
+                {
+                    key: 'xyz',
+                    value: 'test'
+                }
+            ]
+        },
+        {
+            msscript: [
+                { 
+                    command: "mkdir testFolder",
+                    outputDir: 'C:/Temp',
+                    useCopy: true,
+                    executingDir: 'C:/Temp',
+                    envirement: [
+                        {
+                            key: 'xyz',
+                            value: 'test'
+                        }
+                    ]
+                }
+            ],
             outputDir: 'C:/Temp',
             useCopy: true,
             executingDir: 'C:/Temp',
