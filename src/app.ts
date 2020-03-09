@@ -14,9 +14,9 @@ config.setRunsInLinux(configIn.runsInLinux);
 
 console.log(JSON.stringify(config));
 
-const authRouter = require('./routes/auth');
-const scrpitRouter = require('./routes/scripts');
-const workersRouter = require('./routes/workers');
+const authRouter = require('./routes/auth.route');
+const scrpitRouter = require('./routes/scripts.route');
+const workersRouter = require('./routes/workers.route');
 
 
 

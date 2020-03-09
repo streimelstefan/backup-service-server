@@ -21,7 +21,18 @@ const config = {
                 { 
                     command: "mkdir testFolder",
                     outputDir: 'C:/Temp',
-                    useCopy: true,
+                    useCopy: false,
+                    executingDir: 'C:/Temp',
+                    envirement: [
+                        {
+                            key: 'xyz',
+                            value: 'test'
+                        }
+                    ]
+                }, { 
+                    command: "mkdir testFolder1",
+                    outputDir: 'C:/Temp',
+                    useCopy: false,
                     executingDir: 'C:/Temp',
                     envirement: [
                         {

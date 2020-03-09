@@ -2,7 +2,7 @@ import * as express from 'express';
 import { Request, Response } from 'express-serve-static-core';
 const router = express.Router();
 import config = require('../classes/config.class');
-import Worker = require('../classes/worker.class');
+import { Worker } from '../classes/worker.class';
 
 router.route('')
     .get((req: Request, res: Response) => {
@@ -67,28 +67,41 @@ router.post('/:id/register', (req: Request, res: Response) => {
         } else {
             console.log(`[ROUTE][LOG][v1/scripts/:id/register]: Starting data: ${JSON.stringify(config.scripts[sid])}`);
 
-            const id = Worker.Worker.getNewWorkerId();
+            const id = Worker.getNewWorkerId();
 
-            const command = config.scripts[sid].command
-                .replace('{{BACKUP_LOCATION}}', config.projectLoaction + '/' + config.backupLocation + '/back-' + id)
-                .replace('{{BACKUP_FILE_NAME}}', `backup-${id}.back`);
+            const worker = new Worker(id,
+                config.logFilesLocation, 
+                config.logFilesLocation, 
+                config.scripts[sid].outputDir || null,
+                config.scripts[sid].useCopy || null,
+                config.scripts[sid].executingDir || null,
+                config.scripts[sid].envirement || null
+            );
 
-            let backupLocation = null;
-            if (config.scripts[sid].outputDir) {
-                backupLocation = config.scripts[sid].outputDir;
+            if (config.scripts[sid].command) {
+
+                worker.addStep(config.scripts[id].command || '', null, null, null, null);
+
+            } else {
+
+                config.scripts[sid].msscript?.forEach(step => {
+                    worker.addStep(
+                        step.command,
+                        step.outputDir || null,
+                        step.useCopy || null,
+                        step.executingDir || null,
+                        step.envirement || null
+                    );
+                });
+
             }
 
+            Worker.addWorkerToList(worker);
 
-            Worker.Worker.addWorkerToList(new Worker.Worker(command, id, config.logFilesLocation,
-                                     config.logFilesLocation, backupLocation,
-                                     config.scripts[sid].useCopy,
-                                     config.scripts[sid].executingDir,
-                                     config.scripts[sid].envirement));
-
-            console.log(`[ROUTE][LOG][v1/scripts/:id/register]: Registered Worker: ${JSON.stringify(Worker.Worker.getWorkerWithId(id))}`);
+            console.log(`[ROUTE][LOG][v1/scripts/:id/register]: Registered Worker: ${JSON.stringify(Worker.getWorkerWithId(id))}`);
             console.log(`[ROUTE][LOG][v1/scripts/:id/register]: Worker id: ${id}`);
 
-            res.status(200).send({workerId: id, executing: command}).end();
+            res.status(200).send(JSON.stringify({workerId: id, executing: worker.steps})).end();
         }
 
     } else {

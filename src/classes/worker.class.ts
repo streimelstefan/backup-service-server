@@ -2,35 +2,33 @@ declare function require(path: string): any;
 const fs = require('fs-extra');
 import config = require('../classes/config.class');
 import child_process = require('child_process');
+import { SubWorker } from './subWorker.class';
 const zipper = require("zip-local");
 
 export class Worker {
 
     private static wokers = new Array<Worker>(0);
 
-    public command: string;
     public workerId: number;
     public state: 'PASSIVE' | 'RUNNING' | 'ERROR' | 'READY' | 'SUCCESS';
     public logOutPutDir: string;
     public errOutPutDir: string;
     public backupFilesLoc: string | null;
-    public useCopy: boolean;
-    public executingDir: string;
-    public child: child_process.ChildProcess | null;
-    public env: {key: string, value: string}[];
+    public useCopy: boolean | null;
+    public executingDir: string | null;
+    public env: {key: string, value: string}[] | null;
 
-    constructor (
-        command: string,
+    public steps: SubWorker[];
+
+    public constructor (
         workerId: number,
         logOutPutDir: string,
         errOutPutDir: string,
         backupFilesLoc: string | null,
-        useCopy: boolean,
-        executingDir: string,
-        env: {key: string, value: string}[]
-        )
-    {
-        this.command = command;
+        useCopy: boolean | null,
+        executingDir: string | null,
+        env: {key: string, value: string}[] | null
+        ) {
         this.workerId = workerId;
         this.state = 'PASSIVE';
         this.logOutPutDir = logOutPutDir;
@@ -38,131 +36,82 @@ export class Worker {
         this.backupFilesLoc = backupFilesLoc;
         this.useCopy = useCopy;
         this.executingDir = executingDir;
-        this.child = null;
         this.env = env;
+
+        this.steps = new Array<SubWorker>();
     }
 
-    runWorker() {
-        console.log(`[WORKER-${this.workerId}][LOG]: Setting up Worker.`);
-        if (!fs.existsSync(`${this.logOutPutDir}/out-${this.workerId}.log`)) {
-            fs.createFileSync(`${this.logOutPutDir}/out-${this.workerId}.log`);
-        }
-        if (!fs.existsSync(`${this.errOutPutDir}/errout-${this.workerId}.log`)) {
-            fs.createFileSync(`${this.errOutPutDir}/errout-${this.workerId}.log`);
-        }
+    public addStep(
+        command: string,
+        backupFilesLoc: string | null,
+        useCopy: boolean | null,
+        executingDir: string | null,
+        env: {key: string, value: string}[] | null
+    ) {
+        console.log(`[WORKER-${this.workerId}][ADDSTEP][LOG]: Adding step ${this.steps.length}`);
 
-        // if the directory for the backup is not existent create it
-        if (!fs.existsSync(this.backupFilesLoc)) {
-            fs.mkdirSync(this.backupFilesLoc, { recursive: true });
-        }
+        const step = new SubWorker(
+            command,
+            this.workerId,
+            this.logOutPutDir,
+            this.errOutPutDir,
+            backupFilesLoc || this.backupFilesLoc,
+            useCopy || this.useCopy,
+            executingDir || this.executingDir,
+            env || this.env,
+            this.steps.length
+        );
 
-        const out = fs.openSync(`${this.logOutPutDir}/out-${this.workerId}.log`, 'a');
-        const err = fs.openSync(`${this.errOutPutDir}/errout-${this.workerId}.log`, 'a');
+        this.steps.push(step);
+        console.log(`[WORKER-${this.workerId}][ADDSTEP][LOG]: Finished adding step ${this.steps.length}`);
+    }
 
-        this.state = 'RUNNING';
-
-        const env = this.getEnvirement();
-
-        let executingDir = undefined;
-        if (this.executingDir) {
-            executingDir = this.executingDir;
-        }
-
-        let shell = process.env.ComSpec;
-        if (config.runsInLinux) {
-            shell = '/bin/sh';
-        }
-
+    public runWorker() {
         console.log(`[WORKER-${this.workerId}][LOG]: Starting to run Worker`);
 
-        this.child = child_process.spawn(this.command, [], {
-            shell: shell,
-            detached: true,
-            stdio: [ 'ignore', out, err ],
-            cwd: executingDir,
-            env: env
-        });
-
-        this.child.on('close', (code) => {
-            this.finishExecution(code);
-        });
-
+        this.runStepWithIndex(0);        
     }
 
-    getEnvirement() {
-        let env = process.env;
+    private runStepWithIndex(index: number) {
+        if (index < this.steps.length) {
+            const step = this.steps[index]; 
 
-        if (this.env) {
-            this.env.forEach(variable => {
-                env[variable.key] = variable.value;
+            step.runWorker().then((res: string) => {
+                if (res === "SUCCESS") {
+                    index += 1;
+                    this.runStepWithIndex(index);
+                } else {
+                    console.log('Strims you fucked up xD');
+                }
+            }).catch((err: any) => {
+                console.error(`[WORKER-${this.workerId}][ERROR]: There was an Error in step ${index + 1}: ${err}`);
+                console.error(`[WORKER-${this.workerId}][ERROR]: The worker will stop running now!`);
+                this.state = 'ERROR';
             });
-        }
-
-        return env
-    }
-
-    finishExecution(code: number) {
-        console.log(`[WORKER-${this.workerId}][LOG]: Worker finished with code ${code}`);
-
-        // setting backup dir
-        const location = config.projectLoaction + '/' + config.backupLocation + '/back-' + this.workerId;
-        console.log(`[WORKER-${this.workerId}][LOG]: Backup-Location =  ${location}`);
-
-        // check if a backup file location was set
-        if (this.backupFilesLoc) {
-            console.log(`[WORKER-${this.workerId}][LOG]: backup File Location specified need to move files.`);
-            // move the backup files to the backup Location
-            if (this.useCopy) {
-
-                // copy the filloc dir to the backup dir
-                fs.copy(this.backupFilesLoc, location, (err: any) => {
-                    if(err) {
-                        return console.error(`[WORKER-${this.workerId}][ERROR]: Error while coping dir:  ${err}`);
-                    }
-
-                    console.log(`[WORKER-${this.workerId}][LOG]: Copied backup files to backupLocation`);
-                    this.archiveBackupData(location);
-                    this.finishUp();
-                });
-
-            } else {
-                // move the filloc dir to the backup dir
-                fs.move(this.backupFilesLoc, location, (err: any) => {
-                    if(err) {
-                        return console.error(`[WORKER-${this.workerId}][ERROR]: Error while moving dir:  ${err}`);
-                    }
-
-                    console.log(`[WORKER-${this.workerId}][LOG]: Moved backup files to backupLocation`);
-                    this.archiveBackupData(location);
-                    this.finishUp();
-                });
-            }
         } else {
+            console.log(`[WORKER-${this.workerId}][LOG]: All steps finished`);
+
+            const location = config.projectLoaction + '/' + config.backupLocation + '/back-' + this.workerId;
+            console.log(`[WORKER-${this.workerId}][LOG]: Backup-Location =  ${location}`);
             this.archiveBackupData(location);
             this.finishUp();
         }
     }
 
-    archiveBackupData(location: string) {
+    private archiveBackupData(location: string) {
         console.log(`[WORKER-${this.workerId}][LOG]: Starting to Archive backup-data`);
         // Archiving the backup dir
-        addDirToArchive(location, `${config.projectLoaction}/${config.backupLocation}/backup-${this.workerId}.zip`, `[WORKER-${this.workerId}]:`);
+        addDirToArchive(location, `${config.projectLoaction}/${config.backupLocation}/backup-${this.workerId}.zip`, `[WORKER-${this.workerId}][LOG]:`);
     }
 
-    finishUp() {
-        if (this.child) {
-            this.state = 'SUCCESS';
-            this.child.unref();
-            console.log(`[WORKER-${this.workerId}][LOG]: Worker finished running.`);
+    private finishUp() {
+        this.state = 'SUCCESS';
+        console.log(`[WORKER-${this.workerId}][LOG]: Worker finished running.`);
 
-            setTimeout(() => {
-                console.log(`[WORKER-${this.workerId}][LOG]: Releasing Worker.`);
-                this.state = 'PASSIVE'
-            }, config.minWaitTime);
-        } else {
-            this.state = 'ERROR';
-            console.error(`[WORKER-${this.workerId}][ERROR]: Child process was not found.`);
-        }
+        setTimeout(() => {
+            console.log(`[WORKER-${this.workerId}][LOG]: Releasing Worker.`);
+            this.state = 'PASSIVE'
+        }, config.minWaitTime);
     }
 
     public static addWorkerToList(worker: Worker): number {

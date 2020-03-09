@@ -155,7 +155,7 @@ router.post('/:id/restart', (req: Request, res: Response) => {
 
             Worker.Worker.getWorkerWithId(id).runWorker();
 
-            res.status(200).send({workerId: id, executing: Worker.Worker.getWorkerWithId(id).command}).end();
+            res.status(200).send(JSON.stringify({workerId: id, executing: Worker.Worker.getWorkerWithId(id).steps})).end();
         }
 
     } else {

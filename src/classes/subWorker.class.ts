@@ -12,10 +12,10 @@ export class SubWorker {
     public logOutPutDir: string;
     public errOutPutDir: string;
     public backupFilesLoc: string | null;
-    public useCopy: boolean;
-    public executingDir: string;
+    public useCopy: boolean | null;
+    public executingDir: string | null;
     public child: child_process.ChildProcess | null;
-    public env: {key: string, value: string}[];
+    public env: {key: string, value: string}[] | null;
     public step: number;
 
     constructor (
@@ -24,9 +24,9 @@ export class SubWorker {
         logOutPutDir: string,
         errOutPutDir: string,
         backupFilesLoc: string | null,
-        useCopy: boolean,
-        executingDir: string,
-        env: {key: string, value: string}[],
+        useCopy: boolean | null,
+        executingDir: string | null,
+        env: {key: string, value: string}[] | null,
         step: number
         )
     {
@@ -43,10 +43,10 @@ export class SubWorker {
         this.step = step;
     }
 
-    runWorker(): Promise<string> {
+    public runWorker(): Promise<string> {
         return new Promise<string>((res, rej) => {
 
-            console.log(`[WORKER-${this.workerId}][STEP-${this.step}][LOG]: Setting up Worker.`);
+            console.log(`[WORKER-${this.workerId}][STEP-${this.step}][LOG]: Setting up Step.`);
             if (!fs.existsSync(`${this.logOutPutDir}/out-${this.workerId}.log`)) {
                 fs.createFileSync(`${this.logOutPutDir}/out-${this.workerId}.log`);
             }
@@ -74,7 +74,7 @@ export class SubWorker {
                 shell = '/bin/sh';
             }
             
-            console.log(`[WORKER-${this.workerId}][STEP-${this.step}][LOG]: Starting to run Worker`);
+            console.log(`[WORKER-${this.workerId}][STEP-${this.step}][LOG]: Starting to run Step`);
 
             this.state = 'RUNNING';
             
@@ -93,7 +93,7 @@ export class SubWorker {
         });
     }
 
-    getEnvirement() {
+    private getEnvirement() {
         let env = process.env;
 
         if (this.env) {
@@ -105,11 +105,18 @@ export class SubWorker {
         return env
     }
 
-    finishExecution(code: number, res: (value?: string | PromiseLike<string> | undefined) => void, rej: (reason?: any) => void) {
-        console.log(`[WORKER-${this.workerId}][STEP-${this.step}][LOG]: Worker finished with code ${code}`);
+    private finishExecution(code: number, res: (value?: string | PromiseLike<string> | undefined) => void, rej: (reason?: any) => void) {
+        console.log(`[WORKER-${this.workerId}][STEP-${this.step}][LOG]: Step finished with code ${code}`);
 
+        if (code !== 0) {
+            console.log(`[WORKER-${this.workerId}][STEP-${this.step}][ERROR]: The backup script had an error.`);
+            this.state = 'ERROR';
+            rej('The Backupscript failed!');
+            return;
+        }
+        
         // setting backup dir
-        const location = config.projectLoaction + '/' + config.backupLocation + '/back-' + this.workerId;
+        const location = config.projectLoaction + '/' + config.backupLocation + '/back-' + this.workerId + '/step-' + this.step;
         console.log(`[WORKER-${this.workerId}][STEP-${this.step}][LOG]: Backup-Location =  ${location}`);
 
         // check if a backup file location was set
@@ -149,11 +156,11 @@ export class SubWorker {
     }
 
 
-    finishUp(res: (value?: string | PromiseLike<string> | undefined) => void, rej: (reason?: any) => void) {
+    private finishUp(res: (value?: string | PromiseLike<string> | undefined) => void, rej: (reason?: any) => void) {
         if (this.child) {
             this.state = 'SUCCESS';
             this.child.unref();
-            console.log(`[WORKER-${this.workerId}][STEP-${this.step}][LOG]: Worker finished running.`);
+            console.log(`[WORKER-${this.workerId}][STEP-${this.step}][LOG]: Step finished running.`);
             res('SUCCESS');
         } else {
             this.state = 'ERROR';
