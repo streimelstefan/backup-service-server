@@ -69,6 +69,8 @@ export class Worker {
     public runWorker() {
         console.log(`[WORKER-${this.workerId}][LOG]: Starting to run Worker`);
 
+        this.state = 'RUNNING';
+
         this.runStepWithIndex(0);        
     }
 

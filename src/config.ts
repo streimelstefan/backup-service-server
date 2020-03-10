@@ -18,7 +18,7 @@ const config = {
         },
         {
             msscript: [
-                { 
+                {
                     command: "mkdir testFolder",
                     outputDir: 'C:/Temp',
                     useCopy: false,
