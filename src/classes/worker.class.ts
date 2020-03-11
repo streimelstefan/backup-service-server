@@ -96,6 +96,7 @@ export class Worker {
                 console.error(`[WORKER-${this.workerId}][ERROR]: There was an Error in step ${index + 1}: ${err}`);
                 console.error(`[WORKER-${this.workerId}][ERROR]: The worker will stop running now!`);
                 this.state = 'ERROR';
+                step.child?.unref();
             });
         } else {
             console.log(`[WORKER-${this.workerId}][LOG]: All steps finished`);
