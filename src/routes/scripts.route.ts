@@ -69,11 +69,16 @@ router.post('/:id/register', (req: Request, res: Response) => {
 
             const id = Worker.getNewWorkerId();
 
+            let useCopy: boolean | undefined | null = config.scripts[sid].useCopy;
+            if (useCopy === undefined) {
+                useCopy = null;
+            }
+
             const worker = new Worker(id,
-                config.logFilesLocation, 
-                config.logFilesLocation, 
+                config.logFilesLocation,
+                config.logFilesLocation,
                 config.scripts[sid].outputDir || null,
-                config.scripts[sid].useCopy || null,
+                useCopy,
                 config.scripts[sid].executingDir || null,
                 config.scripts[sid].envirement || null
             );

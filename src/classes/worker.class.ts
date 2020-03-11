@@ -71,12 +71,19 @@ export class Worker {
 
         this.state = 'RUNNING';
 
-        this.runStepWithIndex(0);        
+        if (fs.existsSync(`${this.logOutPutDir}/out-${this.workerId}.log`)) {
+            fs.unlinkSync(`${this.logOutPutDir}/out-${this.workerId}.log`);
+        }
+        if (fs.existsSync(`${this.errOutPutDir}/errout-${this.workerId}.log`)) {
+            fs.unlinkSync(`${this.errOutPutDir}/errout-${this.workerId}.log`);
+        }
+
+        this.runStepWithIndex(0);
     }
 
     private runStepWithIndex(index: number) {
         if (index < this.steps.length) {
-            const step = this.steps[index]; 
+            const step = this.steps[index];
 
             step.runWorker().then((res: string) => {
                 if (res === "SUCCESS") {

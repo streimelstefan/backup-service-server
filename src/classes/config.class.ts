@@ -67,7 +67,6 @@ class Config {
             });
 
             // add the scripts to the config
-            
             this.scripts = scripts;
        } catch (error) {
             console.error('[CONFIG][SCRIPT][ERROR]: ' + error);
