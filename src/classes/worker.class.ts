@@ -97,6 +97,10 @@ export class Worker {
                 console.error(`[WORKER-${this.workerId}][ERROR]: The worker will stop running now!`);
                 this.state = 'ERROR';
                 step.child?.unref();
+                setTimeout(() => {
+                    console.log(`[WORKER-${this.workerId}][LOG]: Releasing Worker.`);
+                    this.state = 'PASSIVE'
+                }, config.minWaitTime);
             });
         } else {
             console.log(`[WORKER-${this.workerId}][LOG]: All steps finished`);
