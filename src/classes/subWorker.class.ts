@@ -56,31 +56,31 @@ export class SubWorker {
             if (!fs.existsSync(`${this.errOutPutDir}/errout-${this.workerId}.log`)) {
                 fs.createFileSync(`${this.errOutPutDir}/errout-${this.workerId}.log`);
             }
-            
+
             // if the directory for the backup is not existent create it
             if (!fs.existsSync(this.backupFilesLoc)) {
                 fs.mkdirSync(this.backupFilesLoc, { recursive: true });
             }
-            
+
             const out = fs.openSync(`${this.logOutPutDir}/out-${this.workerId}.log`, 'a');
             const err = fs.openSync(`${this.errOutPutDir}/errout-${this.workerId}.log`, 'a');
-            
+
             const env = this.getEnvirement();
-            
+
             let executingDir = undefined;
             if (this.executingDir) {
                 executingDir = this.executingDir;
             }
-            
+
             let shell = process.env.ComSpec;
             if (config.runsInLinux) {
                 shell = '/bin/sh';
             }
-            
+
             console.log(`[WORKER-${this.workerId}][STEP-${this.step}][LOG]: Starting to run Step`);
 
             this.state = 'RUNNING';
-            
+
             this.child = child_process.spawn(this.command, [], {
                 shell: shell,
                 detached: true,
@@ -88,7 +88,7 @@ export class SubWorker {
                 cwd: executingDir,
                 env: env
             });
-            
+
             this.child.on('close', (code) => {
                 if (this.commandOnly) {
                     if (code !== 0) {
@@ -103,7 +103,7 @@ export class SubWorker {
                     this.finishExecution(code, res, rej);
                 }
             });
-            
+
         });
     }
 
@@ -128,7 +128,7 @@ export class SubWorker {
             rej('The Backupscript failed!');
             return;
         }
-        
+
         // setting backup dir
         const location = config.projectLoaction + '/' + config.backupLocation + '/back-' + this.workerId + '/step-' + this.step;
         console.log(`[WORKER-${this.workerId}][STEP-${this.step}][LOG]: Backup-Location =  ${location}`);
@@ -152,23 +152,23 @@ export class SubWorker {
                 });
 
             } else {
-                // move the filloc dir to the backup dir
-                fs.move(this.backupFilesLoc, location, (err: any) => {
-                    if(err) {
-                        this.state = 'ERROR';
-                        console.error(`[WORKER-${this.workerId}][ERROR]: Error while moving dir:  ${err}`);
-                        rej('Error copying backup files into the backup folder!');
-                    }
-
-                    console.log(`[WORKER-${this.workerId}][STEP-${this.step}][LOG]: Moved backup files to backupLocation`);
-                    this.finishUp(res, rej);
-                });
+                this.moveBackupFiles(location);
+                console.log(`[WORKER-${this.workerId}][STEP-${this.step}][LOG]: Moved backup files to backupLocation`);
+                this.finishUp(res, rej);
             }
         } else {
             this.finishUp(res, rej);
         }
+
     }
 
+    private moveBackupFiles(location: string) {
+        const files = fs.readdirSync(this.backupFilesLoc);
+        files.forEach((file: string) => {
+            console.log(`[WORKER-${this.workerId}][STEP-${this.step}][LOG]: Moved file/folder ${this.backupFilesLoc + '/' + file} to ${location + '/' + file}`);
+            fs.moveSync(this.backupFilesLoc + '/' + file, location + '/' + file, { overwrite: true });
+        });
+    }
 
     private finishUp(res: (value?: string | PromiseLike<string> | undefined) => void, rej: (reason?: any) => void) {
         if (this.child) {

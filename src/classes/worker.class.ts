@@ -71,12 +71,21 @@ export class Worker {
     public runWorker() {
         console.log(`[WORKER-${this.workerId}][LOG]: Starting to run Worker`);
 
-        this.runStepWithIndex(0);        
+        this.state = 'RUNNING';
+
+        if (fs.existsSync(`${this.logOutPutDir}/out-${this.workerId}.log`)) {
+            fs.unlinkSync(`${this.logOutPutDir}/out-${this.workerId}.log`);
+        }
+        if (fs.existsSync(`${this.errOutPutDir}/errout-${this.workerId}.log`)) {
+            fs.unlinkSync(`${this.errOutPutDir}/errout-${this.workerId}.log`);
+        }
+
+        this.runStepWithIndex(0);
     }
 
     private runStepWithIndex(index: number) {
         if (index < this.steps.length) {
-            const step = this.steps[index]; 
+            const step = this.steps[index];
 
             step.runWorker().then((res: string) => {
                 if (res === "SUCCESS") {
@@ -89,6 +98,11 @@ export class Worker {
                 console.error(`[WORKER-${this.workerId}][ERROR]: There was an Error in step ${index + 1}: ${err}`);
                 console.error(`[WORKER-${this.workerId}][ERROR]: The worker will stop running now!`);
                 this.state = 'ERROR';
+                step.child?.unref();
+                setTimeout(() => {
+                    console.log(`[WORKER-${this.workerId}][LOG]: Releasing Worker.`);
+                    this.state = 'PASSIVE'
+                }, config.minWaitTime);
             });
         } else {
             console.log(`[WORKER-${this.workerId}][LOG]: All steps finished`);

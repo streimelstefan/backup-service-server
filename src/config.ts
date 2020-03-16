@@ -7,7 +7,7 @@ const config = {
         {
             command: "mkdir testFolder",
             outputDir: 'C:/Temp',
-            useCopy: true,
+            useCopy: false,
             executingDir: 'C:/Temp',
             envirement: [
                 {
@@ -18,7 +18,7 @@ const config = {
         },
         {
             msscript: [
-                { 
+                {
                     command: "mkdir testFolder",
                     outputDir: 'C:/Temp',
                     useCopy: false,
@@ -29,7 +29,7 @@ const config = {
                             value: 'test'
                         }
                     ]
-                }, { 
+                }, {
                     command: "mkdir testFolder1",
                     outputDir: 'C:/Temp',
                     useCopy: false,
@@ -43,7 +43,7 @@ const config = {
                 }
             ],
             outputDir: 'C:/Temp',
-            useCopy: true,
+            useCopy: false,
             executingDir: 'C:/Temp',
             envirement: [
                 {
