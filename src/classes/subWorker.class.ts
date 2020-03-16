@@ -68,7 +68,7 @@ export class SubWorker {
             }
 
             // if the executing dir deos not exist create it
-            if (fs.existsSync(this.executingDir)) {
+            if (!fs.existsSync(this.executingDir)) {
                 fs.mkdirSync(this.executingDir, { recursive: true });
             }
 
