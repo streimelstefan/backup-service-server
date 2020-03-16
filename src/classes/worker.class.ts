@@ -128,25 +128,57 @@ export class Worker {
     }
 
     private addDirToArchive(dir: string, backname: string) {
-        zipper.zip(dir, (error: any, zipped: any) => {
+        console.log(`[WORKER-${this.workerId}][ARCHIVING][LOG]: Setting up archiver.`);
 
-            if (!error) {
-                zipped.compress();
+        const out = fs.openSync(`${this.logOutPutDir}/out-${this.workerId}.log`, 'a');
+        const err = fs.openSync(`${this.errOutPutDir}/errout-${this.workerId}.log`, 'a');
 
-                zipped.save(backname, (error: any) => {
-                    if (!error) {
-                        console.log(`[WORKER-${this.workerId}][ARCHIVING][LOG]: finished zipping`);
-                        this.finishUp();
-                    } else {
-                        this.state = 'ERROR';
-                        throw `Error writing zip file to disk = ${error}`;
-                    }
-                });
-            } else {
-                this.state = 'ERROR';
-                throw `Error creating zip file = ${error}`;
-            }
+        const env = this.getEnvirement();
+
+        const executingDir = config.projectLoaction + '/' + config.backupLocation;
+
+        let shell = process.env.ComSpec;
+        if (config.runsInLinux) {
+            shell = '/bin/sh';
+        }
+
+        console.log(`[WORKER-${this.workerId}][ARCHIVING][LOG]: Starting to archive`);
+
+        const command = `zip -r backup-${this.workerId}.zip ${executingDir}/back-${this.workerId}`;
+
+        const child = child_process.spawn(command, [], {
+            shell: shell,
+            detached: true,
+            stdio: [ 'ignore', out, err ],
+            cwd: executingDir,
+            env: env
         });
+
+        child.on('close', (code: number) => {
+            if (code !== 0) {
+                console.log(`[WORKER-${this.workerId}][ARCHIVING][ERROR]: Error archiving data`);
+                this.state = 'ERROR';
+                return;
+            } 
+
+            this.finishUp();
+        });
+
+        child.on('error', (error) => {
+            throw "There was en Error trying to start command: " + error;
+        })
+    }
+
+    private getEnvirement() {
+        let env = process.env;
+
+        if (this.env) {
+            this.env.forEach(variable => {
+                env[variable.key] = variable.value;
+            });
+        }
+
+        return env
     }
 
     private finishUp() {
