@@ -107,6 +107,10 @@ export class SubWorker {
                 }
             });
 
+            this.child.on('error', (error) => {
+                throw "There was en Error trying to start command: " + error;
+            })
+
         });
     }
 
