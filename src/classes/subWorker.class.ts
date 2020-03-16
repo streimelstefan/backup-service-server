@@ -41,17 +41,19 @@ export class SubWorker {
         this.commandOnly = commandOnly;
         this.child = null;
 
-        const location = config.projectLoaction + '/' + config.backupLocation + '/back-' + this.workerId + '/step-' + this.step
+        const location = config.projectLoaction + '/' + config.backupLocation + '/back-' + this.workerId + '/step-' + this.step;
 
+        this.executingDir = executingDir || location;
         this.backupFilesLoc = backupFilesLoc;
         this.useCopy = useCopy || false;
-        this.executingDir = executingDir || location;
         this.env = env;
     }
 
     public runWorker(): Promise<string> {
         return new Promise<string>((res, rej) => {
 
+            
+            
             console.log(`[WORKER-${this.workerId}][STEP-${this.step}][LOG]: Setting up Step.`);
             if (!fs.existsSync(`${this.logOutPutDir}/out-${this.workerId}.log`)) {
                 fs.createFileSync(`${this.logOutPutDir}/out-${this.workerId}.log`);
@@ -63,6 +65,11 @@ export class SubWorker {
             // if the directory for the backup is not existent create it
             if (this.backupFilesLoc && !fs.existsSync(this.backupFilesLoc)) {
                 fs.mkdirSync(this.backupFilesLoc, { recursive: true });
+            }
+
+            // if the executing dir deos not exist create it
+            if (fs.existsSync(this.executingDir)) {
+                fs.mkdirSync(this.executingDir, { recursive: true });
             }
 
             const out = fs.openSync(`${this.logOutPutDir}/out-${this.workerId}.log`, 'a');
