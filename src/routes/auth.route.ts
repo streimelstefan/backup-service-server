@@ -11,10 +11,10 @@ router.route('/login')
         if (req.body.uid === config.user.id && req.body.pwd === config.user.pwd) {
             console.log('[ROUTE][LOG][v1/auth/login]: The user is authenticated!');
             req!.session!.authenticated = true;
-            res.status(200).send({desc: 'Authentication sucessfull!'}).end();
+            res.status(200).json({desc: 'Authentication sucessfull!'}).end();
         } else {
             console.error('[ROUTE][ERROR][v1/auth/login]: The user entered the wrong credentials!');
-            res.status(401).send({desc: 'Wrong Credentials'}).end();
+            res.status(401).json({desc: 'Wrong Credentials'}).end();
         }
     });
 

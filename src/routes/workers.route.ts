@@ -25,11 +25,11 @@ router.route('/:id/errorlog')
 
             } else {
                 console.error('[ROUTE][ERROR][v1/workers/:id/errorlog]: The asked for file was not found');
-                res.status(404).send({desc: 'Logfile does not exist'}).end();
+                res.status(404).json({desc: 'Logfile does not exist'}).end();
             }
         } else {
             console.error('[ROUTE][ERROR][v1/workers/:id/errorlog]: User is not authenticated');
-            res.status(401).send({desc: 'Please authenticate first!'});
+            res.status(401).json({desc: 'Please authenticate first!'});
         }
     });
 
@@ -48,11 +48,11 @@ router.get('/:id/stdlog', (req: Request, res: Response) => {
 
         } else {
             console.error('[ROUTE][ERROR][v1/workers/:id/stdlog]: The asked for file was not found');
-            res.status(404).send({desc: 'Logfile does not exist'}).end();
+            res.status(404).json({desc: 'Logfile does not exist'}).end();
         }
     } else {
         console.error('[ROUTE][ERROR][v1/workers/:id/stdlog]: User is not authenticated');
-        res.status(401).send({desc: 'Please authenticate first!'}).end();
+        res.status(401).json({desc: 'Please authenticate first!'}).end();
     }
 });
 
@@ -66,11 +66,11 @@ router.get('/:id/state', (req: Request, res: Response) => {
             console.error('[ROUTE][ERROR][v1/workers/:id/state]: Worker not in the worker Array.');
             res.status(404).end();
         } else {
-            res.status(200).send({state: Worker.Worker.getWorkerWithId(id).state}).end();
+            res.status(200).json({state: Worker.Worker.getWorkerWithId(id).state}).end();
         }
     } else {
         console.error('[ROUTE][ERROR][v1/workers/:id/state]: User is not authenticated');
-        res.status(401).send({desc: 'Please authenticate first!'}).end();
+        res.status(401).json({desc: 'Please authenticate first!'}).end();
     }
 });
 
@@ -92,11 +92,11 @@ router.post('/:id/getBackupFile', (req: Request, res: Response) => {
 
         } else {
             console.error('[ROUTE][ERROR][v1/workers/:id/getBackupFile]: The asked for file, was not found');
-            res.status(404).send({desc: 'Backupfile does not exist'}).end();
+            res.status(404).json({desc: 'Backupfile does not exist'}).end();
         }
     } else {
         console.error('[ROUTE][ERROR][v1/workers/:id/getBackupFile]: User is not authenticated');
-        res.status(401).send({desc: 'Please authenticate first!'}).end();
+        res.status(401).json({desc: 'Please authenticate first!'}).end();
     }
 });
 
@@ -127,7 +127,7 @@ router.delete('/:id/backup', (req: Request, res: Response) => {
         }
     } else {
         console.error('[ROUTE][ERROR][v1/workers/:id/backup]: The User is not authenticated');
-        res.status(401).send('Please Authenticate first').end();
+        res.status(401).json({desc: 'Please Authenticate first'}).end();
     }
 });
 
@@ -139,28 +139,28 @@ router.post('/:id/restart', (req: Request, res: Response) => {
         console.log('[ROUTE][LOG][v1/workers/:id/restart]: Workers online: ' + Worker.Worker.getWorkersListLength());
 
         if (isNaN(id)) {
-            res.status(400).send({desc: 'The id needs to be a number!'}).end();
+            res.status(400).json({desc: 'The id needs to be a number!'}).end();
         } else if (id > Worker.Worker.getWorkersListLength() - 1) {
             console.error('[ROUTE][ERROR][v1/workers/:id/restart]: Max ammount of Worker ID = ' + (Worker.Worker.getWorkersListLength() - 1))
-            res.status(400).send({desc: 'The id is higher than the highest id.'}).end();
+            res.status(400).json({desc: 'The id is higher than the highest id.'}).end();
         } else if (id < 0) {
-            res.status(400).send({desc: 'The id needs to be positive'}).end();
+            res.status(400).json({desc: 'The id needs to be positive'}).end();
         } else if (Worker.Worker.getWorkerWithId(id).state != 'PASSIVE') {
             console.error(`[ROUTE][ERROR][v1/workers/:id/restart]: The Worker that the user wants to restart is currently running or hasn't been released yet.`);
-            res.status(403).send({desc: 'This worker is running right now or hasnt been released yet.'});
+            res.status(403).json({desc: 'This worker is running right now or hasnt been released yet.'});
         } else {
-            console.log(`[ROUTE][LOG][v1/workers/:id/restart]: Starting data: ${JSON.stringify(Worker.Worker.getWorkerWithId(id))}`);
+            console.log(`[ROUTE][LOG][v1/workers/:id/restart]: Starting data: ${Worker.Worker.getWorkerWithId(id)}`);
 
             console.log(`[ROUTE][LOG][v1/workers/:id/restart]: Restarting Worker with id: ${id}`);
 
             Worker.Worker.getWorkerWithId(id).runWorker();
 
-            res.status(200).send(JSON.stringify({workerId: id, executing: Worker.Worker.getWorkerWithId(id).steps})).end();
+            res.status(200).json({workerId: id, executing: Worker.Worker.getWorkerWithId(id).steps}).end();
         }
 
     } else {
         console.error('[ROUTE][LOG][v1/workers/:id/restart]: The User is not authenticated');
-        res.status(401).send('Please Authenticate first').end();
+        res.status(401).json({desc: 'Please Authenticate first'}).end();
     }
 });
 
