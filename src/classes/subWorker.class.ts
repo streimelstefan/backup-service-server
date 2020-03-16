@@ -12,7 +12,7 @@ export class SubWorker {
     public logOutPutDir: string;
     public errOutPutDir: string;
     public backupFilesLoc: string | null;
-    public useCopy: boolean | null;
+    public useCopy: boolean;
     public executingDir: string | null;
     public child: child_process.ChildProcess | null;
     public env: {key: string, value: string}[] | null;
@@ -37,13 +37,16 @@ export class SubWorker {
         this.state = 'SUCCESS';
         this.logOutPutDir = logOutPutDir;
         this.errOutPutDir = errOutPutDir;
-        this.backupFilesLoc = backupFilesLoc;
-        this.useCopy = useCopy;
-        this.executingDir = executingDir;
-        this.child = null;
-        this.env = env;
         this.step = step;
         this.commandOnly = commandOnly;
+        this.child = null;
+
+        const location = config.projectLoaction + '/' + config.backupLocation + '/back-' + this.workerId + '/step-' + this.step
+
+        this.backupFilesLoc = backupFilesLoc;
+        this.useCopy = useCopy || false;
+        this.executingDir = executingDir || location;
+        this.env = env;
     }
 
     public runWorker(): Promise<string> {
@@ -58,7 +61,7 @@ export class SubWorker {
             }
 
             // if the directory for the backup is not existent create it
-            if (!fs.existsSync(this.backupFilesLoc)) {
+            if (this.backupFilesLoc && !fs.existsSync(this.backupFilesLoc)) {
                 fs.mkdirSync(this.backupFilesLoc, { recursive: true });
             }
 

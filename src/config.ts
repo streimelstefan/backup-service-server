@@ -51,6 +51,10 @@ const config = {
                     value: 'test'
                 }
             ]
+        },
+        {
+            command: "echo test",
+            commandOnly: true
         }
     ],
     logFilesLocation: 'logs',

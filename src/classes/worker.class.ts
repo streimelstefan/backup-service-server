@@ -17,6 +17,7 @@ export class Worker {
     public useCopy: boolean | null;
     public executingDir: string | null;
     public env: {key: string, value: string}[] | null;
+    public onlyCommand: boolean;
 
     public steps: SubWorker[];
 
@@ -27,7 +28,8 @@ export class Worker {
         backupFilesLoc: string | null,
         useCopy: boolean | null,
         executingDir: string | null,
-        env: {key: string, value: string}[] | null
+        env: {key: string, value: string}[] | null,
+        onlyCommand: boolean
         ) {
         this.workerId = workerId;
         this.state = 'PASSIVE';
@@ -37,6 +39,7 @@ export class Worker {
         this.useCopy = useCopy;
         this.executingDir = executingDir;
         this.env = env;
+        this.onlyCommand = onlyCommand;
 
         this.steps = new Array<SubWorker>();
     }
@@ -109,7 +112,11 @@ export class Worker {
 
             const location = config.projectLoaction + '/' + config.backupLocation + '/back-' + this.workerId;
             console.log(`[WORKER-${this.workerId}][LOG]: Backup-Location =  ${location}`);
-            this.archiveBackupData(location);
+
+            if (!this.onlyCommand) {
+                this.archiveBackupData(location);
+            }
+            
             this.finishUp();
         }
     }

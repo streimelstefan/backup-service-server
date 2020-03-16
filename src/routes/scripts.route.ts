@@ -80,7 +80,8 @@ router.post('/:id/register', (req: Request, res: Response) => {
                 config.scripts[sid].outputDir || null,
                 useCopy,
                 config.scripts[sid].executingDir || null,
-                config.scripts[sid].envirement || null
+                config.scripts[sid].envirement || null,
+                config.scripts[sid].commandOnly || false && config.scripts[sid].command || false
             );
 
             if (config.scripts[sid].command) {
