@@ -115,16 +115,38 @@ export class Worker {
 
             if (!this.onlyCommand) {
                 this.archiveBackupData(location);
+            } else {
+                this.finishUp();
             }
-            
-            this.finishUp();
         }
     }
 
     private archiveBackupData(location: string) {
         console.log(`[WORKER-${this.workerId}][LOG]: Starting to Archive backup-data`);
         // Archiving the backup dir
-        addDirToArchive(location, `${config.projectLoaction}/${config.backupLocation}/backup-${this.workerId}.zip`, `[WORKER-${this.workerId}][LOG]:`);
+        this.addDirToArchive(location, `${config.projectLoaction}/${config.backupLocation}/backup-${this.workerId}.zip`);
+    }
+
+    private addDirToArchive(dir: string, backname: string) {
+        zipper.zip(dir, (error: any, zipped: any) => {
+
+            if (!error) {
+                zipped.compress();
+
+                zipped.save(backname, (error: any) => {
+                    if (!error) {
+                        console.log(`[WORKER-${this.workerId}][ARCHIVING][LOG]: finished zipping`);
+                        this.finishUp();
+                    } else {
+                        this.state = 'ERROR';
+                        throw `Error writing zip file to disk = ${error}`;
+                    }
+                });
+            } else {
+                this.state = 'ERROR';
+                throw `Error creating zip file = ${error}`;
+            }
+        });
     }
 
     private finishUp() {
@@ -152,9 +174,4 @@ export class Worker {
     public static getWorkersListLength(): number {
         return Worker.wokers.length;
     }
-}
-
-function addDirToArchive(dir: string, backname: string, preset: string) {
-    zipper.sync.zip(dir).compress().save(backname);
-    console.log(`${preset} finished zipping`);
 }
