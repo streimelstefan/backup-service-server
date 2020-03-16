@@ -146,6 +146,7 @@ interface Script {
     useCopy?: boolean;
     executingDir?: string;
     envirement?: EnvirementPart[];
+    commandOnly?: boolean;
 }
 
 interface ScriptConfig {
@@ -154,6 +155,7 @@ interface ScriptConfig {
     useCopy?: boolean;
     executingDir?: string;
     envirement?: EnvirementPart[];
+    commandOnly?: boolean;
 }
 
 interface EnvirementPart {

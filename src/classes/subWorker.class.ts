@@ -17,6 +17,7 @@ export class SubWorker {
     public child: child_process.ChildProcess | null;
     public env: {key: string, value: string}[] | null;
     public step: number;
+    public commandOnly: boolean;
 
     constructor (
         command: string,
@@ -27,7 +28,8 @@ export class SubWorker {
         useCopy: boolean | null,
         executingDir: string | null,
         env: {key: string, value: string}[] | null,
-        step: number
+        step: number,
+        commandOnly: boolean
         )
     {
         this.command = command;
@@ -41,6 +43,7 @@ export class SubWorker {
         this.child = null;
         this.env = env;
         this.step = step;
+        this.commandOnly = commandOnly;
     }
 
     public runWorker(): Promise<string> {
@@ -87,7 +90,18 @@ export class SubWorker {
             });
             
             this.child.on('close', (code) => {
-                this.finishExecution(code, res, rej);
+                if (this.commandOnly) {
+                    if (code !== 0) {
+                        console.log(`[WORKER-${this.workerId}][STEP-${this.step}][ERROR]: The backup script had an error.`);
+                        this.state = 'ERROR';
+                        rej('The Backupscript failed!');
+                        return;
+                    } 
+
+                    this.finishUp(res, rej);
+                } else {
+                    this.finishExecution(code, res, rej);
+                }
             });
             
         });

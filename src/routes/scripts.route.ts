@@ -80,7 +80,7 @@ router.post('/:id/register', (req: Request, res: Response) => {
 
             if (config.scripts[sid].command) {
 
-                worker.addStep(config.scripts[id].command || '', null, null, null, null);
+                worker.addStep(config.scripts[sid].command || '', null, null, null, null, config.scripts[sid].commandOnly || false);
 
             } else {
 
@@ -90,7 +90,8 @@ router.post('/:id/register', (req: Request, res: Response) => {
                         step.outputDir || null,
                         step.useCopy || null,
                         step.executingDir || null,
-                        step.envirement || null
+                        step.envirement || null,
+                        step.commandOnly || false
                     );
                 });
 

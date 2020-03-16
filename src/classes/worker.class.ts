@@ -46,7 +46,8 @@ export class Worker {
         backupFilesLoc: string | null,
         useCopy: boolean | null,
         executingDir: string | null,
-        env: {key: string, value: string}[] | null
+        env: {key: string, value: string}[] | null,
+        onlyCommand: boolean
     ) {
         console.log(`[WORKER-${this.workerId}][ADDSTEP][LOG]: Adding step ${this.steps.length}`);
 
@@ -59,7 +60,8 @@ export class Worker {
             useCopy || this.useCopy,
             executingDir || this.executingDir,
             env || this.env,
-            this.steps.length
+            this.steps.length,
+            onlyCommand
         );
 
         this.steps.push(step);
